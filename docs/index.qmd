@@ -1,0 +1,60 @@
+---
+title: "Abschlussprojekt"
+subtitle: "rstatsZH-K009: "
+author: "DaaniiH"
+format: html
+editor: visual
+chunk_output_type: console
+---
+
+```{r}
+
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(forcats)
+library(ggthemes)
+library(scales)
+library(lubridate)
+```
+
+```{r}
+
+import_table <-  read_csv("daten/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv")
+
+View(Quartiere_Jahr_KTZH_00002604_00005328)
+  
+```
+
+# Einleitung
+
+## Daten
+
+ANPASSEN
+
+Bei den Daten handelt es sich um ein MS Excel Spreadsheet. Das vorrangige Ziel dieser Analyse ist es die Daten aufzubereiten um diese in ein Tidy Data Format zu bringen. Mit diesem Format werden die Daten dann mittels Visualisierungen erkundet.
+
+Titel: Unfall-, Umwelt- und Gesundheitskosten des motorisierten Verkehrs
+
+Ein Datensatz des Bundesamt für Statistik (BFS) welches sich mittels des Datenkatalog des BFS finden lässt. Die Ressource ist hier abgelegt: <https://www.bfs.admin.ch/bfs/de/home/statistiken/katalog.assetdetail.28425317.html>
+
+Die Methodik für die Erhebung der Daten ist hier verfügbar: <https://www.are.admin.ch/are/de/home/mobilitaet/grundlagen-und-daten/kosten-und-nutzen-des-verkehrs.html>
+
+## Analyseziele 
+
+ANPASSEN
+
+Bei den Daten handelt es sich um ein MS Excel Spreadsheet. Das vorrangige Ziel dieser Analyse ist es die Daten aufzubereiten um diese in ein Tidy Data Format zu bringen. Mit diesem Format werden die Daten dann mittels Visualisierungen erkundet..
+
+# Daten Aufbereitung
+
+```{r}
+
+```
+
+# Daten Visualisierung
+
+```{r}
+
+```

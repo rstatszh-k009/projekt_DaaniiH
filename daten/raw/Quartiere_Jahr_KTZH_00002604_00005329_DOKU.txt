@@ -1,0 +1,247 @@
+MODELL
+    ogd_einwohner_staatenkleingruppe_quartier_yyyy
+
+BESCHREIBUNG MODELL
+    Einwohner nach Staatenkleingruppe Quartier und Jahr, seit 2014.
+    
+    ┌──────────┬────────────────────────────────────────┐
+    │ Quelle   │ Einwohnerkontrolle Winterthur (NEST)   │
+    ├──────────┼────────────────────────────────────────┤
+    │ Sprache  │ Deutsch                                │
+    └──────────┴────────────────────────────────────────┘
+    
+    File-Export (CSV)
+    -----------------
+    
+    Die Daten werden im CSV-Format exportiert. Das File ist UTF-8 codiert und Spalten mittels Kommata (,) getrennt.
+    Der Export richtet sich dabei den Leitlinien für einfach nutzbare Behördendaten [1] des Kantons Zürich.
+
+VARIABLEN
+
+    ********************
+
+    VARIABLE
+        jahr
+
+    BESCHREIBUNG VARIABLE
+        Jahr, mit Stichtag 31. Dezember. Die Daten werden für gewöhnlich in den ersten Tagen des neuen Jahres exportiert (Wissensstand).
+        
+        ┌────────────────┬────────────────────┐
+        │ Typ            │ Zahl (4-stellig)   │
+        ├────────────────┼────────────────────┤
+        │ kann leer sein │ nein               │
+        ├────────────────┼────────────────────┤
+        │ Beispiel       │ 2015               │
+        └────────────────┴────────────────────┘
+
+    ********************
+
+    VARIABLE
+        gemeinde_bfs_nr
+
+    BESCHREIBUNG VARIABLE
+        Gemeinde-Nummer nach Definition des BFS [2].
+        
+        ┌────────────────┬────────────────────┐
+        │ Typ            │ Zahl (4-stellig)   │
+        ├────────────────┼────────────────────┤
+        │ kann leer sein │ nein               │
+        ├────────────────┼────────────────────┤
+        │ Beispiel       │ 230                │
+        └────────────────┴────────────────────┘
+
+    ********************
+
+    VARIABLE
+        gemeinde
+
+    BESCHREIBUNG VARIABLE
+        Amtlicher Gemeindename nach Definition des BFS [2].
+        
+        ┌────────────────┬────────────────────────────┐
+        │ Typ            │ Text (max. 60 Charakter)   │
+        ├────────────────┼────────────────────────────┤
+        │ kann leer sein │ nein                       │
+        ├────────────────┼────────────────────────────┤
+        │ Beispiel       │ Winterthur                 │
+        └────────────────┴────────────────────────────┘
+
+    ********************
+
+    VARIABLE
+        stadtkreis_bfs_nr
+
+    BESCHREIBUNG VARIABLE
+        ID des Stadtkreises, nach Definition des BFS [3].
+        
+        ┌────────────────┬────────────────────┐
+        │ Typ            │ Zahl (1-stellig)   │
+        ├────────────────┼────────────────────┤
+        │ kann leer sein │ ja, wenn unbekannt │
+        ├────────────────┼────────────────────┤
+        │ Beispiel       │ 7                  │
+        └────────────────┴────────────────────┘
+        Ist der Stadtkreis nicht bekannt, wird ein leerer Wert ausgewiesen.
+
+    ********************
+
+    VARIABLE
+        stadtkreis
+
+    BESCHREIBUNG VARIABLE
+        Stadtkreis, nach Definition des BFS [3].
+        
+        ┌────────────────┬────────────┐
+        │ Typ            │ Text       │
+        ├────────────────┼────────────┤
+        │ kann leer sein │ nein       │
+        ├────────────────┼────────────┤
+        │ Beispiel       │ Mattenbach │
+        └────────────────┴────────────┘
+        Ist der Stadtkreis nicht bekannt, wird "unbekannt" ausgewiesen.
+
+    ********************
+
+    VARIABLE
+        quartier_bfs_nr
+
+    BESCHREIBUNG VARIABLE
+        ID des Statistischen Quartiers, nach Definition des BFS [3].
+        
+        ┌────────────────┬────────────────────┐
+        │ Typ            │ Zahl (4-stellig)   │
+        ├────────────────┼────────────────────┤
+        │ kann leer sein │ ja, wenn unbekannt │
+        ├────────────────┼────────────────────┤
+        │ Beispiel       │ 230                │
+        └────────────────┴────────────────────┘
+        Ist das Quartier nicht bekannt, wird ein leerer Wert ausgewiesen.
+
+    ********************
+
+    VARIABLE
+        quartier
+
+    BESCHREIBUNG VARIABLE
+        Statistisches Quartier, nach Definition des BFS [3].
+        
+        ┌────────────────┬────────────────────┐
+        │ Typ            │ Zahl (4-stellig)   │
+        ├────────────────┼────────────────────┤
+        │ kann leer sein │ nein               │
+        ├────────────────┼────────────────────┤
+        │ Beispiel       │ 230                │
+        └────────────────┴────────────────────┘
+        Ist das Quartier nicht bekannt, wird "unbekannt" ausgewiesen.
+
+    ********************
+
+    VARIABLE
+        staatenkleingruppe
+
+    BESCHREIBUNG VARIABLE
+        Zuteilung der Nationalität der Einwohner/innen zu einer Staatenkleingruppe.
+        
+        ┌────────────────┬─────────┐
+        │ Typ            │ Text    │
+        ├────────────────┼─────────┤
+        │ kann leer sein │ nein    │
+        ├────────────────┼─────────┤
+        │ Beispiel       │ Italien │
+        └────────────────┴─────────┘
+        Ist die Nationalität nicht bekannt, wird "unbekannt" ausgewiesen.
+        
+        Kriterien für Bildung Staatenkleingruppen
+        -----------------------------------------
+        
+        Die Bildung der Staatenkleingruppen orientiert sich in erster Linie an kulturräumlichen Merkmalen (Ständiger Ausschuss für Geografische Namen StAGN)
+        und in zweiter Linie an der Bedeutung einzelner Staaten für die Bevölkerungszusammensetzung der Stadt Winterthur.
+        
+        Unbekannte Nationalitäten
+        -------------------------
+        
+        Die meisten unbekannten Staatsangehörigkeiten betreffend Staatsangehörigkeiten von Kosovo (Ausrufung Kosovo: Februar 2008)
+        Bei Zeitreihen weiter zurück als 2005 empfiehlt es sich die Staatsanghörigkeiten von Kosovo, Serbien und den unbekannten Staaten zusammenzufassen.
+        Unbekannte Staatsangehörigkeiten werden als "unbekannt" ausgewiesen.
+
+    ********************
+
+    VARIABLE
+        region
+
+    BESCHREIBUNG VARIABLE
+        Zuteilung der Nationalität der Einwohner/innen zu einer Region (anhand der Staatenkleingruppe).
+        
+        ┌────────────────┬──────────────┐
+        │ Typ            │ Text         │
+        ├────────────────┼──────────────┤
+        │ kann leer sein │ nein         │
+        ├────────────────┼──────────────┤
+        │ Beispiel       │ Südosteuropa │
+        └────────────────┴──────────────┘
+        Ist die Nationalität nicht bekannt, wird "unbekannt" ausgewiesen.
+        
+        Unbekannte Nationalitäten
+        -------------------------
+        
+        Die meisten unbekannten Staatsangehörigkeiten betreffend Staatsangehörigkeiten von Kosovo (Ausrufung Kosovo: Februar 2008)
+        Bei Zeitreihen weiter zurück als 2005 empfiehlt es sich die Staatsanghörigkeiten von Kosovo, Serbien und den unbekannten Staaten zusammenzufassen.
+        Unbekannte Staatsangehörigkeiten werden als "unbekannt" ausgewiesen.
+
+    ********************
+
+    VARIABLE
+        anzahl
+
+    BESCHREIBUNG VARIABLE
+        Anzahl der Einwohner/innen in der ausgewiesenen Gruppe.
+        Die Definition der Einwohner/innen richtet sich in Winterthur nach dem Prinzip der "Wohnbevölkerung".
+        Diese unterscheidet sich von der Definition des Kantons, welche Einwohner für gewöhnlich nach dem zivilrechtlichen Prinzip definiert.
+        Weitere Informationen zur Definition sind auf dem Statistikportal der Stadt Winterthur [4] zu finden.
+        
+        ┌────────────────┬────────────────────┐
+        │ Typ            │ Zahl               │
+        ├────────────────┼────────────────────┤
+        │ kann leer sein │ ja, wenn Wert <=20 │
+        ├────────────────┼────────────────────┤
+        │ Beispiel       │ 132                │
+        └────────────────┴────────────────────┘
+        
+        Datenschutz
+        -----------
+        
+        Um den Datenschutz sicherzustellen, werden Gruppen mit nur wenigen Beobachtungen vor Publikation angepasst.
+        Wird in der Gruppe eine Mindestanzahl erreicht (siehe Wert in obiger Tabelle "kann leer sein"), dann wird ein leerer Wert ausgewiesen.
+        Zusätzlich wird in der nächsten Spalte (Suffix "_ist_kleingruppe") der Wert "true" ausgewiesen.
+        Dies signalisiert dem Datennutzenden, dass zwar Beobachtungen in dieser Gruppe vorliegen, jedoch diese aus Datenschutzgründen nicht ausgewiesen werden.
+        Ein Beispiel:
+        Einwohner nach Quartier und Alter Könnte wie folgt ausssehen:
+        
+        ┌────────────┬─────────┬──────────┐
+        │ quartier   │ alter   │ anzahl   │
+        ├────────────┼─────────┼──────────┤
+        │ ...        │ ...     │ ...      │
+        ├────────────┼─────────┼──────────┤
+        │ Altstadt   │ 25      │ 123      │
+        ├────────────┼─────────┼──────────┤
+        │ Altstadt   │ 103     │ 2        │
+        └────────────┴─────────┴──────────┘
+        Diese Tabelle würde vor Publikaton abgeändert zu:
+        
+        ┌────────────┬─────────┬──────────┬──────────────────────────┐
+        │ quartier   │ alter   │ anzahl   │ anzahl_ist_kleingruppe   │
+        ├────────────┼─────────┼──────────┼──────────────────────────┤
+        │ ...        │ ...     │ ...      │ ...                      │
+        ├────────────┼─────────┼──────────┼──────────────────────────┤
+        │ Altstadt   │ 25      │ 123      │ false                    │
+        ├────────────┼─────────┼──────────┼──────────────────────────┤
+        │ Altstadt   │ 103     │          │ true                     │
+        └────────────┴─────────┴──────────┴──────────────────────────┘
+
+    ********************
+
+QUELLEN
+    [1] https://github.com/openZH/ogd-handbook/blob/main/publikationsleitlinien.md
+    [2] https://www.bfs.admin.ch/asset/de/31265302
+    [3] https://www.bfs.admin.ch/bfs/de/home/grundlagen/agvch/quartiergrenzen-schweizer-staedte.html
+    [4] https://stadt.winterthur.ch/themen/die-stadt/winterthur/statistik/Definitionen

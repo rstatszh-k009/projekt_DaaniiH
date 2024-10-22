@@ -1,0 +1,176 @@
+MODELL
+    ogd_einwohner_nationalitaet_geschlecht_alter_yyyy
+
+BESCHREIBUNG MODELL
+    Einwohner, nach Nationalität (Schweiz/Ausland), Geschlecht und Alterklasse.
+    Daten verfügbar ab 2014.
+    
+    ┌──────────┬────────────────────────────────────────┐
+    │ Quelle   │ Einwohnerkontrolle Winterthur (NEST)   │
+    ├──────────┼────────────────────────────────────────┤
+    │ Sprache  │ Deutsch                                │
+    └──────────┴────────────────────────────────────────┘
+    
+    File-Export (CSV)
+    -----------------
+    
+    Die Daten werden im CSV-Format exportiert. Das File ist UTF-8 codiert und Spalten mittels Kommata (,) getrennt.
+    Der Export richtet sich dabei den Leitlinien für einfach nutzbare Behördendaten [1] des Kantons Zürich.
+
+VARIABLEN
+
+    ********************
+
+    VARIABLE
+        jahr
+
+    BESCHREIBUNG VARIABLE
+        Jahr, mit Stichtag 31. Dezember. Die Daten werden für gewöhnlich in den ersten Tagen des neuen Jahres exportiert (Wissensstand).
+        
+        ┌────────────────┬────────────────────┐
+        │ Typ            │ Zahl (4-stellig)   │
+        ├────────────────┼────────────────────┤
+        │ kann leer sein │ nein               │
+        ├────────────────┼────────────────────┤
+        │ Beispiel       │ 2015               │
+        └────────────────┴────────────────────┘
+
+    ********************
+
+    VARIABLE
+        gemeinde_bfs_nr
+
+    BESCHREIBUNG VARIABLE
+        Gemeinde-Nummer nach Definition des BFS [2].
+        
+        ┌────────────────┬────────────────────┐
+        │ Typ            │ Zahl (4-stellig)   │
+        ├────────────────┼────────────────────┤
+        │ kann leer sein │ nein               │
+        ├────────────────┼────────────────────┤
+        │ Beispiel       │ 230                │
+        └────────────────┴────────────────────┘
+
+    ********************
+
+    VARIABLE
+        gemeinde
+
+    BESCHREIBUNG VARIABLE
+        Amtlicher Gemeindename nach Definition des BFS [2].
+        
+        ┌────────────────┬────────────────────────────┐
+        │ Typ            │ Text (max. 60 Charakter)   │
+        ├────────────────┼────────────────────────────┤
+        │ kann leer sein │ nein                       │
+        ├────────────────┼────────────────────────────┤
+        │ Beispiel       │ Winterthur                 │
+        └────────────────┴────────────────────────────┘
+
+    ********************
+
+    VARIABLE
+        altersklasse
+
+    BESCHREIBUNG VARIABLE
+        Altersklasse in Schritten von 5 Jahren. Alter ab 95 wird als "95+" zusammengefasst.
+        Das Alter wird berechnet in Bezug auf den gewählten Stichtag (meist Ende Jahr).
+        Abgesehen von der Klasse "95+" sind alle Klassen im Format "YY-YY" (Beispiel: "05-09") ausgewiesen.
+        
+        ┌────────────────┬────────┐
+        │ Typ            │ Text   │
+        ├────────────────┼────────┤
+        │ kann leer sein │ nein   │
+        ├────────────────┼────────┤
+        │ Beispiel       │ 00-04  │
+        └────────────────┴────────┘
+
+    ********************
+
+    VARIABLE
+        heimat
+
+    BESCHREIBUNG VARIABLE
+        Heimat Einwohner/innen, ausgehend von der Nationalität.
+        
+        ┌────────────────┬───────────────────────────────┐
+        │ Typ            │ Enum (Schweiz oder Ausland)   │
+        ├────────────────┼───────────────────────────────┤
+        │ kann leer sein │ nein                          │
+        ├────────────────┼───────────────────────────────┤
+        │ Beispiel       │ Ausland                       │
+        └────────────────┴───────────────────────────────┘
+
+    ********************
+
+    VARIABLE
+        geschlecht
+
+    BESCHREIBUNG VARIABLE
+        Geschlecht der Einwohner/in.
+        Unterschieden wird zwischen männlich und weiblich.
+        
+        ┌────────────────┬─────────────────────────────────┐
+        │ Typ            │ Enum (männlich oder weiblich)   │
+        ├────────────────┼─────────────────────────────────┤
+        │ kann leer sein │ nein                            │
+        ├────────────────┼─────────────────────────────────┤
+        │ Beispiel       │ weiblich                        │
+        └────────────────┴─────────────────────────────────┘
+
+    ********************
+
+    VARIABLE
+        anzahl
+
+    BESCHREIBUNG VARIABLE
+        Anzahl der Einwohner/innen in der ausgewiesenen Gruppe.
+        Die Definition der Einwohner/innen richtet sich in Winterthur nach dem Prinzip der "Wohnbevölkerung".
+        Diese unterscheidet sich von der Definition des Kantons, welche Einwohner für gewöhnlich nach dem zivilrechtlichen Prinzip definiert.
+        Weitere Informationen zur Definition sind auf dem Statistikportal der Stadt Winterthur [3] zu finden.
+        
+        ┌────────────────┬────────────────────┐
+        │ Typ            │ Zahl               │
+        ├────────────────┼────────────────────┤
+        │ kann leer sein │ ja, wenn Wert <=20 │
+        ├────────────────┼────────────────────┤
+        │ Beispiel       │ 132                │
+        └────────────────┴────────────────────┘
+        
+        Datenschutz
+        -----------
+        
+        Um den Datenschutz sicherzustellen, werden Gruppen mit nur wenigen Beobachtungen vor Publikation angepasst.
+        Wird in der Gruppe eine Mindestanzahl erreicht (siehe Wert in obiger Tabelle "kann leer sein"), dann wird ein leerer Wert ausgewiesen.
+        Zusätzlich wird in der nächsten Spalte (Suffix "_ist_kleingruppe") der Wert "true" ausgewiesen.
+        Dies signalisiert dem Datennutzenden, dass zwar Beobachtungen in dieser Gruppe vorliegen, jedoch diese aus Datenschutzgründen nicht ausgewiesen werden.
+        Ein Beispiel:
+        Einwohner nach Quartier und Alter Könnte wie folgt ausssehen:
+        
+        ┌────────────┬─────────┬──────────┐
+        │ quartier   │ alter   │ anzahl   │
+        ├────────────┼─────────┼──────────┤
+        │ ...        │ ...     │ ...      │
+        ├────────────┼─────────┼──────────┤
+        │ Altstadt   │ 25      │ 123      │
+        ├────────────┼─────────┼──────────┤
+        │ Altstadt   │ 103     │ 2        │
+        └────────────┴─────────┴──────────┘
+        Diese Tabelle würde vor Publikaton abgeändert zu:
+        
+        ┌────────────┬─────────┬──────────┬──────────────────────────┐
+        │ quartier   │ alter   │ anzahl   │ anzahl_ist_kleingruppe   │
+        ├────────────┼─────────┼──────────┼──────────────────────────┤
+        │ ...        │ ...     │ ...      │ ...                      │
+        ├────────────┼─────────┼──────────┼──────────────────────────┤
+        │ Altstadt   │ 25      │ 123      │ false                    │
+        ├────────────┼─────────┼──────────┼──────────────────────────┤
+        │ Altstadt   │ 103     │          │ true                     │
+        └────────────┴─────────┴──────────┴──────────────────────────┘
+
+    ********************
+
+QUELLEN
+    [1] https://github.com/openZH/ogd-handbook/blob/main/publikationsleitlinien.md
+    [2] https://www.bfs.admin.ch/asset/de/31265302
+    [3] https://stadt.winterthur.ch/themen/die-stadt/winterthur/statistik/Definitionen
