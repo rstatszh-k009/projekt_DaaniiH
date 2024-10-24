@@ -21,35 +21,63 @@ library(lubridate)
 
 ```{r}
 
-import_table <-  read_csv("daten/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv")
+import_table_staatenkleingruppen <-  read_csv("daten/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv")
 
-View(Quartiere_Jahr_KTZH_00002604_00005328)
+  View(import_table_staatenkleingruppen)
   
+
+import_table_geschlecht <- read_csv("daten/raw/Geschlecht_Alter_KTZH_00002605_00005330.csv")
+
+  View(import_table_geschlecht)
+
+
+import_table_auslaenderanteil_kantonal <- read_delim('https://www.web.statistik.zh.ch/ogd/data/KANTON_ZUERICH_205.csv')
+
+  View(import_table_auslaenderanteil_kantonal)
 ```
 
 # Einleitung
 
+Die Bevölkerung in Winterthur - Ein Einblick in Altersstruktur und Migration.
+
 ## Daten
 
-ANPASSEN
+Bei den Rohdatenhandelt es sich um CSV Dateien aus dem Datenkatalog des Kantons Zürich.
 
-Bei den Daten handelt es sich um ein MS Excel Spreadsheet. Das vorrangige Ziel dieser Analyse ist es die Daten aufzubereiten um diese in ein Tidy Data Format zu bringen. Mit diesem Format werden die Daten dann mittels Visualisierungen erkundet.
+[Quellen]{.underline}
 
-Titel: Unfall-, Umwelt- und Gesundheitskosten des motorisierten Verkehrs
+-   Bevölkerung, nach Staatenkleingruppe und Quartier\
+    [https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2604\@stadt-winterthur](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2604@stadt-winterthur)
 
-Ein Datensatz des Bundesamt für Statistik (BFS) welches sich mittels des Datenkatalog des BFS finden lässt. Die Ressource ist hier abgelegt: <https://www.bfs.admin.ch/bfs/de/home/statistiken/katalog.assetdetail.28425317.html>
+-   Bevölkerung, nach Heimat, Geschlecht und Alter\
+    [https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2605\@stadt-winterthur](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2605@stadt-winterthur)
 
-Die Methodik für die Erhebung der Daten ist hier verfügbar: <https://www.are.admin.ch/are/de/home/mobilitaet/grundlagen-und-daten/kosten-und-nutzen-des-verkehrs.html>
+-   Bevölkerungswachstum der Stadt Winterthur ab 1985\
+    [https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/1481\@stadt-winterthur](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/1481@stadt-winterthur)
 
-## Analyseziele 
+-   Ausländeranteil\
+    <https://openzh.github.io/starter-code-openZH/>\
+    [https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/68\@statistisches-amt-kanton-zuerich](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/68@statistisches-amt-kanton-zuerich)
 
-ANPASSEN
+-   Link zur GIS Browser Datendownload\
+    [https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/278\@opendata-giszh-ktzh/distributions/1](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/278@opendata-giszh-ktzh/distributions/1) bzw. <http://maps.zh.ch/?topic=BASISKARTEZH&showtab=ogddownload>
 
-Bei den Daten handelt es sich um ein MS Excel Spreadsheet. Das vorrangige Ziel dieser Analyse ist es die Daten aufzubereiten um diese in ein Tidy Data Format zu bringen. Mit diesem Format werden die Daten dann mittels Visualisierungen erkundet..
+## Analyseziele
+
+Im Rahmen der Analyse werden die Daten aufbereitet und in ein Tidy Data Format gebracht, erkundet und visualisiert
+
+-   Der erste Teil der Analyse soll Erkenntnisse zur Entwicklung von Altersstruktur und Ausländeranteil der vergangenen 10 Jahre schaffen.
+
+-   In einem zweiten Teil werden zusätzliche Einblicke einerseits durch eine Betrachtung auf Quartierlevel sowie im Vergleich mit den kantonalen Zahlen geschaffen.
+
+-   In einem letzten optionalen Teil (i.e. sofern es die Zeit zulässt) soll eine Darstellung auf einer Landkarte erfolgen.
 
 # Daten Aufbereitung
 
 ```{r}
+
+
+
 
 ```
 
