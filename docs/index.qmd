@@ -17,23 +17,24 @@ library(forcats)
 library(ggthemes)
 library(scales)
 library(lubridate)
+library(knitr)     # Package wird für Funktion kable() geladen
+library(DT)        # Package wird für Funktion datatable() geladen
+library(gt)        # Package wird für Funktion gt() geladen
+
 ```
 
 ```{r}
 
-import_table_staatenkleingruppen <-  read_csv("daten/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv")
-
-  View(import_table_staatenkleingruppen)
+data_staatenkleingruppe <-  read_csv("daten/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv")
+#View(data_staatenkleingruppen)
   
 
-import_table_geschlecht <- read_csv("daten/raw/Geschlecht_Alter_KTZH_00002605_00005330.csv")
+data_geschlecht_heimat <- read_csv("daten/raw/Geschlecht_Alter_KTZH_00002605_00005330.csv")
+#View(import_table_geschlecht)
 
-  View(import_table_geschlecht)
 
-
-import_table_auslaenderanteil_kantonal <- read_delim('https://www.web.statistik.zh.ch/ogd/data/KANTON_ZUERICH_205.csv')
-
-  View(import_table_auslaenderanteil_kantonal)
+data_auslaenderanteil_kantonal <- read_delim('https://www.web.statistik.zh.ch/ogd/data/KANTON_ZUERICH_205.csv')
+#View(import_table_auslaenderanteil_kantonal)
 ```
 
 # Einleitung
@@ -64,19 +65,108 @@ Bei den Rohdatenhandelt es sich um CSV Dateien aus dem Datenkatalog des Kantons 
 
 ## Analyseziele
 
-Im Rahmen der Analyse werden die Daten aufbereitet und in ein Tidy Data Format gebracht, erkundet und visualisiert
+Im Rahmen der Analyse werden die Daten aufbereitet und in ein Tidy Data Format gebracht, erkundet und visualisiert.
 
 -   Der erste Teil der Analyse soll Erkenntnisse zur Entwicklung von Altersstruktur und Ausländeranteil der vergangenen 10 Jahre schaffen.
 
 -   In einem zweiten Teil werden zusätzliche Einblicke einerseits durch eine Betrachtung auf Quartierlevel sowie im Vergleich mit den kantonalen Zahlen geschaffen.
 
+    Benötigte Daten:
+
+    -   df aus Teil 1
+
+    -   Stadtkreis/Quartier
+
 -   In einem letzten optionalen Teil (i.e. sofern es die Zeit zulässt) soll eine Darstellung auf einer Landkarte erfolgen.
 
 # Daten Aufbereitung
 
+Erster Teil der Analyse, Entwicklung von Altersstruktur und Ausländeranteil der vergangenen 10 Jahre.
+
 ```{r}
 
+##############################################################################
+#Daten betrachten
+glimpse(data_staatenkleingruppe)
 
+names(data_staatenkleingruppe)
+unique(data_staatenkleingruppe$staatenkleingruppe)
+unique(data_staatenkleingruppe$stadtkreis)
+unique(data_staatenkleingruppe$quartier)
+
+nrow(data_staatenkleingruppe)
+
+##############################################################################
+#NA in Spalte "anzahl" prüfen
+anzahl_na <- data_staatenkleingruppe %>%
+  filter(is.na(anzahl)) %>%
+  nrow()
+  
+anzahl_ohne_na <- data_staatenkleingruppe %>%
+  filter(!is.na(anzahl)) %>%
+  nrow()
+  
+cat("Zeilen ohne NA in Spalte 'anzahl':", anzahl_ohne_na, "\n")
+cat("Zeilen mit NA in Spalte 'anzahl':", anzahl_na, "\n")
+
+
+##############################################################################
+#feld "herkunft" hinzufügen und dataframe reduzieren auf benötigte Felder
+data_staatenkleingruppe_reduced <- data_staatenkleingruppe %>% 
+  mutate(herkunft = case_when(staatenkleingruppe != "Schweiz" ~  "Ausland",
+                              TRUE                            ~ "Schweiz")) %>% 
+  select(jahr, herkunft, stadtkreis, quartier, anzahl) 
+
+gt(data_staatenkleingruppe_reduced)
+
+
+##############################################################################
+#neues dataframe inkl. Summe und prozentuale Anteile
+data_staatenkleingruppe_reduced_figures <- data_staatenkleingruppe_reduced %>%
+  #Gruppieren und Summe bilden
+  group_by(jahr, stadtkreis, quartier, herkunft) %>%   
+  summarise(sum = sum(anzahl, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  #Erneut gruppieren um prozentuale Anteile zu berechnen 
+  group_by(jahr, stadtkreis, quartier) %>%
+  mutate(sum_quartier = sum(sum),
+         pct_quartier = round(sum / sum_quartier * 100,1)) %>%
+  ungroup() %>% 
+  
+  #Erneut gruppieren um prozentuale Anteile zu berechnen 
+  group_by(jahr, stadtkreis) %>%
+  mutate(sum_stadtkreis = sum(sum),
+         pct_stadtkreis = round(sum / sum_stadtkreis *100,1)) %>%
+  ungroup()
+
+
+datatable(data_staatenkleingruppe_reduced_figures)
+  
+
+
+data_staatenkleingruppe_reduced_figures
+
+
+
+
+##############################################################################
+
+
+tbd
+
+
+#Alter ist nicht in data_statenkleingruppe. Es wird deshalb geprüft ob diese Angabe aus einer anderen Quelle hinzugenommen werden kann.
+
+names(data_geschlecht_heimat)
+nrow(data_geschlecht_heimat)
+glimpse(data_geschlecht_heimat)
+
+
+
+
+Nationalität (CH/non-CH)
+
+optional: Geschlecht 
 
 
 ```
@@ -84,5 +174,21 @@ Im Rahmen der Analyse werden die Daten aufbereitet und in ein Tidy Data Format g
 # Daten Visualisierung
 
 ```{r}
+
+ggplot(data = data_staatenkleingruppe_reduced_figures,
+       mapping = aes(x = factor(jahr),
+                     y = pct_stadtkreis,
+                     fill = herkunft)) +
+  geom_col(position = "stack") +
+  facet_wrap(~ stadtkreis, scales = "free_y") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Jahr",
+       y = "Prozent des Stadtkreises",
+       fill = "Herkunft",
+       title = "Prozentuale Verteilung nach Herkunft",
+       subtitle = "pro Stadtkreis über die letzten 10 Jahre") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1))
+
 
 ```
