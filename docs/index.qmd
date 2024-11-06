@@ -88,7 +88,6 @@ Erster Teil der Analyse, Entwicklung von Altersstruktur und Ausländeranteil der
 ##############################################################################
 #Daten betrachten
 glimpse(data_staatenkleingruppe)
-
 names(data_staatenkleingruppe)
 unique(data_staatenkleingruppe$staatenkleingruppe)
 unique(data_staatenkleingruppe$stadtkreis)
@@ -111,10 +110,10 @@ cat("Zeilen mit NA in Spalte 'anzahl':", anzahl_na, "\n")
 
 
 ##############################################################################
-#feld "herkunft" hinzufügen und dataframe reduzieren auf benötigte Felder
+#Feld "herkunft" hinzufügen und dataframe reduzieren auf benötigte Felder
 data_staatenkleingruppe_reduced <- data_staatenkleingruppe %>% 
   mutate(herkunft = case_when(staatenkleingruppe != "Schweiz" ~  "Ausland",
-                              TRUE                            ~ "Schweiz")) %>% 
+                              TRUE                            ~  "Schweiz")) %>% 
   select(jahr, herkunft, stadtkreis, quartier, anzahl) 
 
 gt(data_staatenkleingruppe_reduced)
@@ -126,25 +125,26 @@ data_staatenkleingruppe_reduced_figures <- data_staatenkleingruppe_reduced %>%
   #Gruppieren und Summe bilden
   group_by(jahr, stadtkreis, quartier, herkunft) %>%   
   summarise(sum = sum(anzahl, na.rm = TRUE)) %>% 
-  ungroup() %>% 
+  ungroup() %>%
+  
   #Erneut gruppieren um prozentuale Anteile zu berechnen 
   group_by(jahr, stadtkreis, quartier) %>%
-  mutate(sum_quartier = sum(sum),
+  mutate(sum_quartier = sum(sum, na.rm = TRUE),
          pct_quartier = round(sum / sum_quartier * 100,1)) %>%
-  ungroup() %>% 
+  ungroup() %>%
   
   #Erneut gruppieren um prozentuale Anteile zu berechnen 
   group_by(jahr, stadtkreis) %>%
-  mutate(sum_stadtkreis = sum(sum),
+  mutate(sum_stadtkreis = sum(sum, na.rm = TRUE),
          pct_stadtkreis = round(sum / sum_stadtkreis *100,1)) %>%
-  ungroup()
-
+  ungroup() %>%
+  
+  group_by(jahr, herkunft) %>%
+  summarise(sum_city = sum(sum, na.rm = TRUE),
+            pct_city = round(sum / sum_stadtkreis *100,1))
 
 datatable(data_staatenkleingruppe_reduced_figures)
-  
 
-
-data_staatenkleingruppe_reduced_figures
 
 
 
@@ -152,21 +152,21 @@ data_staatenkleingruppe_reduced_figures
 ##############################################################################
 
 
-tbd
-
-
-#Alter ist nicht in data_statenkleingruppe. Es wird deshalb geprüft ob diese Angabe aus einer anderen Quelle hinzugenommen werden kann.
-
-names(data_geschlecht_heimat)
-nrow(data_geschlecht_heimat)
-glimpse(data_geschlecht_heimat)
-
-
-
-
-Nationalität (CH/non-CH)
-
-optional: Geschlecht 
+# tbd
+# 
+# 
+# #Alter ist nicht in data_statenkleingruppe. Es wird deshalb geprüft ob diese Angabe aus einer anderen Quelle hinzugenommen werden kann.
+# 
+# names(data_geschlecht_heimat)
+# nrow(data_geschlecht_heimat)
+# glimpse(data_geschlecht_heimat)
+# 
+# 
+# 
+# 
+# Nationalität (CH/non-CH)
+# 
+# optional: Geschlecht 
 
 
 ```
@@ -175,16 +175,33 @@ optional: Geschlecht
 
 ```{r}
 
+
+ggplot(data = data_staatenkleingruppe_reduced_figures, 
+       mapping = aes(x = factor(jahr),
+                     y = pct_city,
+                     fill = herkunft)) +
+  geom_col(position = "stack") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Jahr",
+       y = NULL,
+       fill = "Herkunft",
+       title = "Summe nach Herkunft über die Jahre",
+       subtitle = "Gruppiert nach Jahr und Herkunft") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1))
+  
+
+
 ggplot(data = data_staatenkleingruppe_reduced_figures,
        mapping = aes(x = factor(jahr),
                      y = pct_stadtkreis,
                      fill = herkunft)) +
-  geom_col(position = "stack") +
+  geom_col(position = "stack")+
   facet_wrap(~ stadtkreis, scales = "free_y") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   labs(x = "Jahr",
-       y = "Prozent des Stadtkreises",
+       y = NULL,
        fill = "Herkunft",
        title = "Prozentuale Verteilung nach Herkunft",
        subtitle = "pro Stadtkreis über die letzten 10 Jahre") +
