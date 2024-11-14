@@ -7,6 +7,8 @@ editor: visual
 chunk_output_type: console
 ---
 
+# Packages laden
+
 ```{r}
 
 library(readr)
@@ -23,18 +25,24 @@ library(gt)        # Package wird für Funktion gt() geladen
 
 ```
 
+# Daten laden
+
 ```{r}
 
-data_staatenkleingruppe <-  read_csv("daten/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv")
+data_staatenkleingruppe <-  read_csv("data/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv")
 #View(data_staatenkleingruppen)
   
 
-data_geschlecht_heimat <- read_csv("daten/raw/Geschlecht_Alter_KTZH_00002605_00005330.csv")
+data_geschlecht_heimat <- read_csv("data/raw/Geschlecht_Alter_KTZH_00002605_00005330.csv")
 #View(import_table_geschlecht)
 
 
 data_auslaenderanteil_kantonal <- read_delim('https://www.web.statistik.zh.ch/ogd/data/KANTON_ZUERICH_205.csv')
 #View(import_table_auslaenderanteil_kantonal)
+
+
+#tbd
+#data_geo_coordinates_ktzh <- read_csv ....
 ```
 
 # Einleitung
@@ -67,17 +75,15 @@ Bei den Rohdatenhandelt es sich um CSV Dateien aus dem Datenkatalog des Kantons 
 
 Im Rahmen der Analyse werden die Daten aufbereitet und in ein Tidy Data Format gebracht, erkundet und visualisiert.
 
--   Der erste Teil der Analyse soll Erkenntnisse zur Entwicklung von Altersstruktur und Ausländeranteil der vergangenen 10 Jahre schaffen.
+-   **Teil 1\
+    **Erkenntnisse zur Entwicklung von **i)** **Ausländeranteil** und **ii)** **Altersstruktur** der Stadt Winterthur (sowie der Stadkreise bzw. Quartiere) über vergangenen 10 Jahre schaffen.
 
--   In einem zweiten Teil werden zusätzliche Einblicke einerseits durch eine Betrachtung auf Quartierlevel sowie im Vergleich mit den kantonalen Zahlen geschaffen.
+    Benötigte Daten: Jahr, Stadkreis, Quartier, Ausländeranteil, Alter
 
-    Benötigte Daten:
+-   **Teil 2\
+    **Ausländeranteil vergleichen mit **i) kantonalen Zahlen** und **ii) geografische Heatmap** erstellen.
 
-    -   df aus Teil 1
-
-    -   Stadtkreis/Quartier
-
--   In einem letzten optionalen Teil (i.e. sofern es die Zeit zulässt) soll eine Darstellung auf einer Landkarte erfolgen.
+    Benötigte Daten: Jahr, Ausländeranteil, Gebiet (inkl. Koordinaten)
 
 # Daten Aufbereitung
 
@@ -95,49 +101,82 @@ unique(data_staatenkleingruppe$quartier)
 
 nrow(data_staatenkleingruppe)
 
+
+
 ##############################################################################
 #NA in Spalte "anzahl" prüfen
-anzahl_na <- data_staatenkleingruppe %>%
+data_staatenkleingruppe_anzahl_na <- data_staatenkleingruppe %>%
   filter(is.na(anzahl)) %>%
   nrow()
-  
-anzahl_ohne_na <- data_staatenkleingruppe %>%
+
+    ##Alle Einträge mit mind. 1 NA in einer Spalte
+    #data_staatenkleingruppe_na <- data_staatenkleingruppe %>% 
+    #  filter(if_any(everything(), is.na))
+    
+    ##ODER
+   
+    #data_staatenkleingruppe_na <- data_staatenkleingruppe[!complete.cases(data_staatenkleingruppe), ]
+
+data_staatenkleingruppe_anzahl_ohne_na <- data_staatenkleingruppe %>%
   filter(!is.na(anzahl)) %>%
   nrow()
+
+    ##Alle Einträge ohne NA in jeglicher Spalte
+    #data_staatenkleingruppe_no_na <- data_staatenkleingruppe %>% 
+    #filter(if_any(everything(), !is.na))
+    
+    ##ODER
   
-cat("Zeilen ohne NA in Spalte 'anzahl':", anzahl_ohne_na, "\n")
-cat("Zeilen mit NA in Spalte 'anzahl':", anzahl_na, "\n")
+    #data_staatenkleingruppe_no_na <- data_staatenkleingruppe[complete.cases(data_staatenkleingruppe), ]
+
+
+cat("Zeilen ohne NA in Spalte 'anzahl':", data_staatenkleingruppe_anzahl_ohne_na, "\n")
+cat("Zeilen mit NA in Spalte 'anzahl':", data_staatenkleingruppe_anzahl_na, "\n")
+
+#Reduzierung auf Einträge ohne NA in relevanten Spalten 
+data_staatenkleingruppe_no_na <- data_staatenkleingruppe %>%
+#  filter(if_any(c(jahr, staatenkleingruppe, stadtkreis, quartier, anzahl), ~!is.na))
+ filter(if_all(c(jahr, staatenkleingruppe, stadtkreis, quartier, anzahl), ~!is.na(.)))
+
+
+gt(data_staatenkleingruppe_no_na)
 
 
 ##############################################################################
 #Feld "herkunft" hinzufügen und dataframe reduzieren auf benötigte Felder
-data_staatenkleingruppe_reduced <- data_staatenkleingruppe %>% 
+data_staatenkleingruppe_reduced <- data_staatenkleingruppe_no_na %>% 
   mutate(herkunft = case_when(staatenkleingruppe != "Schweiz" ~  "Ausland",
                               TRUE                            ~  "Schweiz")) %>% 
   select(jahr, herkunft, stadtkreis, quartier, anzahl) 
 
 gt(data_staatenkleingruppe_reduced)
 
+write_csv(x = data_staatenkleingruppe_reduced,
+          here::here("data/processed/data_staatenkleingruppe_reduced.csv"))
+
+
 
 ##############################################################################
 #neues dataframe inkl. Summe und prozentuale Anteile
 data_staatenkleingruppe_reduced_figures <- data_staatenkleingruppe_reduced %>%
   #Gruppieren und Summe bilden
-  group_by(jahr, stadtkreis, quartier, herkunft) %>%   
-  summarise(sum = sum(anzahl, na.rm = TRUE)) %>% 
-  ungroup() %>%
+  group_by(jahr, stadtkreis, quartier, herkunft) %>%  
+  # mutate(sum_city = sum(anzahl, na.rm = TRUE),
+  #        pct_city = round(sum_city / anzahl * 100,1))
+  summarise(sum_city = sum(anzahl, na.rm = TRUE)) %>% 
+  #ungroup() %>%
   
   #Erneut gruppieren um prozentuale Anteile zu berechnen 
   group_by(jahr, stadtkreis, quartier) %>%
-  mutate(sum_quartier = sum(sum, na.rm = TRUE),
-         pct_quartier = round(sum / sum_quartier * 100,1)) %>%
-  ungroup() %>%
+  mutate(sum_quartier = sum(sum_city, na.rm = TRUE),
+         pct_quartier = round(sum_city / sum_quartier * 100,1)) %>%
+  #ungroup() %>%
   
   #Erneut gruppieren um prozentuale Anteile zu berechnen 
   group_by(jahr, stadtkreis) %>%
   mutate(sum_stadtkreis = sum(sum, na.rm = TRUE),
-         pct_stadtkreis = round(sum / sum_stadtkreis *100,1)) %>%
-  ungroup() %>%
+         pct_stadtkreis = round(sum_city / sum_stadtkreis *100,1)) %>%
+  #ungroup() %>%
   
   group_by(jahr, herkunft) %>%
   summarise(sum_city = sum(sum, na.rm = TRUE),
