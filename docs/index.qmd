@@ -33,7 +33,15 @@ library(gt)        # Package wird für Funktion gt() geladen
 ```{r}
 
 data_staatenkleingruppe <-  read_csv(here::here("data/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv"))
+# <<<<<<< HEAD
 # View(data_staatenkleingruppen)
+#=======
+#View(data_staatenkleingruppen)
+  
+
+data_geschlecht_heimat <- read_csv(here::here("data/raw/Geschlecht_Alter_KTZH_00002605_00005330.csv"))
+#View(import_table_geschlecht)
+#>>>>>>> 9d6c109c2855658793a8ce8e8da7e021c8b027b4
 
 
 data_auslaenderanteil_kantonal <- read_delim('https://www.web.statistik.zh.ch/ogd/data/KANTON_ZUERICH_205.csv')
