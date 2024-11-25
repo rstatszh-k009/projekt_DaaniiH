@@ -2,7 +2,10 @@
 title: "Abschlussprojekt"
 subtitle: "rstatsZH-K009: "
 author: "DaaniiH"
-format: html
+format: 
+  html:
+    embed-resources: true
+    toc: true
 editor: visual
 chunk_output_type: console
 ---
@@ -32,8 +35,6 @@ library(gt)        # Package wird für Funktion gt() geladen
 data_staatenkleingruppe <-  read_csv(here::here("data/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv"))
 # View(data_staatenkleingruppen)
 
-data_geschlecht_heimat <- read_csv(here::here("data/raw/Geschlecht_Alter_KTZH_00002605_00005330.csv"))
-# View(import_table_geschlecht)
 
 data_auslaenderanteil_kantonal <- read_delim('https://www.web.statistik.zh.ch/ogd/data/KANTON_ZUERICH_205.csv')
 # View(import_table_auslaenderanteil_kantonal)
@@ -55,12 +56,6 @@ Bei den Rohdatenhandelt es sich um CSV Dateien aus dem Datenkatalog des Kantons 
 -   Bevölkerung, nach Staatenkleingruppe und Quartier\
     [https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2604\@stadt-winterthur](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2604@stadt-winterthur)
 
--   Bevölkerung, nach Heimat, Geschlecht und Alter\
-    [https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2605\@stadt-winterthur](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2605@stadt-winterthur)
-
--   Bevölkerungswachstum der Stadt Winterthur ab 1985\
-    [https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/1481\@stadt-winterthur](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/1481@stadt-winterthur)
-
 -   Ausländeranteil\
     <https://openzh.github.io/starter-code-openZH/>\
     [https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/68\@statistisches-amt-kanton-zuerich](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/68@statistisches-amt-kanton-zuerich)
@@ -73,9 +68,9 @@ Bei den Rohdatenhandelt es sich um CSV Dateien aus dem Datenkatalog des Kantons 
 Im Rahmen der Analyse werden die Daten aufbereitet und in ein Tidy Data Format gebracht, erkundet und visualisiert.
 
 -   **Teil 1\
-    **Erkenntnisse zur Entwicklung von **i)** **Ausländeranteil** und **ii)** **Altersstruktur** der Stadt Winterthur (sowie der Stadkreise bzw. Quartiere) über vergangenen 10 Jahre schaffen.
+    **Erkenntnisse zur Entwicklung von **Ausländeranteil** der Stadt Winterthur (sowie der Stadkreise bzw. Quartiere) über die vergangenen 10 Jahre schaffen.
 
-    Benötigte Daten: Jahr, Stadkreis, Quartier, Ausländeranteil, Alter
+    Benötigte Daten: Jahr, Stadkreis, Quartier, Ausländeranteil
 
 -   **Teil 2\
     **Ausländeranteil vergleichen mit **i) kantonalen Zahlen** und **ii) geografische Heatmap** erstellen.
@@ -84,7 +79,7 @@ Im Rahmen der Analyse werden die Daten aufbereitet und in ein Tidy Data Format g
 
 # Daten Aufbereitung
 
-Erster Teil der Analyse, Entwicklung von Altersstruktur und Ausländeranteil der vergangenen 10 Jahre.
+Erster Teil der Analyse, Entwicklung des Ausländeranteils der vergangenen 10 Jahre.
 
 ### Staatenkleingruppen
 
@@ -202,12 +197,13 @@ write_csv(x = data_staatenkleingruppe_reduced,
 
 #### Statistische Kennzahlen und Übersichten erstellen
 
-Ausländeranteil auf @tbl-tbl-anteile Stadt- und Stadtkreisebene der letzten 10 Jahre
+Ausländeranteil der Stadt Winterthur der letzten 10 Jahre @tbl-anteile
 
 ```{r}
 
+
 #| label: tbl-anteile
-#| tbl-cap: Ausländeranteil Stadt Winterthur der letzten 10 Jahre
+#| tbl-cap: "Ausländeranteil Stadt Winterthur der letzten 10 Jahre"
 
 
 # Berechne die Gesamteinwohnerzahl pro Jahr
@@ -231,6 +227,14 @@ overview_city <- data_staatenkleingruppe_reduced %>%
 
 gt(overview_city)
 
+```
+
+Ausländeranteil der Stadtkreise von Winterthur der letzten 10 Jahre @tbl-anteile-stadtkreis
+
+```{r}
+
+#| label: tbl-anteile-stadtkreis
+#| tbl-cap: "Ausländeranteil der Stadtkreise von Winterthur der letzten 10 Jahre"
 
 
 ## STADTKREIS
@@ -260,6 +264,14 @@ overview_stadtkreis <- data_staatenkleingruppe_reduced %>%
 gt(overview_stadtkreis)
 
 
+```
+
+Ausländeranteil der Quartiere von Winterthur der letzten 10 Jahre @tbl-anteile-quartier
+
+```{r}
+
+#| label: tbl-anteile-quartier
+#| tbl-cap: "Ausländeranteil der Quartiere von Winterthur der letzten 10 Jahre"
 
 ## Quartier
 overview_quartier <- data_staatenkleingruppe_reduced %>%
@@ -319,6 +331,16 @@ overview_stadtkreis_cleaned <- overview_stadtkreis %>%
 
 gt(overview_stadtkreis_cleaned)
 
+```
+
+Stadt Winterthur und die Entwicklung des Ausländeranteils @fig-anteil-stadt
+
+```{r}
+
+#| label: fig-anteil-stadt
+#| fig-cap: "Entwicklung des prozentualen Ausländeranteils der Stadt Winterthur"
+#| warning: false
+
 
 # Entwicklung Ausländeranteil
 ggplot(data = overview_city, 
@@ -335,7 +357,15 @@ ggplot(data = overview_city,
        subtitle = "Gruppiert nach Jahr") +
   scale_y_continuous(labels = scales::percent_format(scale = 1))  
 
+```
 
+Stadtkreise Winterthurs und deren Entwicklung des Ausländeranteils @fig-anteil-stadtkreise (stacked)
+
+```{r}
+
+#| label: fig-anteil-stadtkreis
+#| fig-cap: "Entwicklung des prozentualen Ausländeranteils innerhalb der Stadtkreise von Winterthur"
+#| warning: false
 
 
 ggplot(data = overview_stadtkreis_cleaned,
@@ -355,7 +385,15 @@ ggplot(data = overview_stadtkreis_cleaned,
   theme_classic()
    
 
+```
 
+Stadtkreise Winterthurs und deren Entwicklung des Ausländeranteils @fig-anteil-stadtkreise (Ein Diagramm pro Stadtkreis)
+
+```{r}
+
+#| label: fig-anteil-quartier
+#| fig-cap: "Entwicklung des prozentualen Ausländeranteils innerhalb der Quartiere von Winterthur"
+#| warning: false
 
 #Entwicklung Ausländeranteil nach Stadtkreis
 ggplot(data = overview_stadtkreis_cleaned, 
@@ -376,6 +414,11 @@ ggplot(data = overview_stadtkreis_cleaned,
   labs(x = "Jahr", y = "Ausländeranteil (%)", color = "Stadtkreis") 
 
 
+```
+
+WIP
+
+```{r}
 
 
 # Liniendiagramm mit Facetten
