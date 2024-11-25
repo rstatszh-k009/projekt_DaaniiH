@@ -6,6 +6,7 @@ format:
   html:
     embed-resources: true
     toc: true
+    toc-expand: true
 editor: visual
 chunk_output_type: console
 #Code chunks standardmässig ausblenden und nur Ergebnisse anzeigen
@@ -28,7 +29,7 @@ library(lubridate)
 library(knitr)     # Package wird für Funktion kable() geladen
 library(DT)        # Package wird für Funktion datatable() geladen
 library(gt)        # Package wird für Funktion gt() geladen
-
+library(kableExtra) # Package wird für detailiertere kable() bzw. kbl() Tabellen benötigt.
 ```
 
 # Daten laden
@@ -36,13 +37,8 @@ library(gt)        # Package wird für Funktion gt() geladen
 ```{r}
 
 data_staatenkleingruppe <-  read_csv(here::here("data/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv"))
-# The view() function is not compatible with R Markdown rendering
-#View(data_staatenkleingruppen)
-  
 
 data_auslaenderanteil_kantonal <- read_delim('https://www.web.statistik.zh.ch/ogd/data/KANTON_ZUERICH_205.csv')
-# The view() function is not compatible with R Markdown rendering
-# View(import_table_auslaenderanteil_kantonal)
 
 # tbd
 # data_geo_coordinates_ktzh <- read_csv
@@ -51,7 +47,7 @@ data_auslaenderanteil_kantonal <- read_delim('https://www.web.statistik.zh.ch/og
 
 # Einleitung
 
-Die Bevölkerung in Winterthur - Ein Einblick in Altersstruktur und Migration.
+Die Bevölkerung in Winterthur - Ein Einblick in die Entwicklung des Ausländeranteils.
 
 ## Daten
 
@@ -89,12 +85,29 @@ Erster Teil der Analyse, Entwicklung des Ausländeranteils der vergangenen 10 Ja
 
 ### Staatenkleingruppen
 
-#### Daten betrachten
+#### Vorwort zur Problemstellung mit "Viewern"
+
+> 1.  Die Funktion **`view()`** kann nicht in ein Quarto Dokument eingebettet werden und muss deshalb bei Erstellung desselben ausgeschlossen werden.
+
+```{r}
+#| eval: false
+#| echo: false
 
 
-> Die beiden **viewer `gt()`** und **`kable()`** produzieren u.U. komplexe/grosse Tabellen, dies kann zu **Rendering-Problemen** führen.
+#| eval: false
+#| echo: false
+
+# The view() function is not compatible with R Markdown rendering
+ View(data_staatenkleingruppe)
+ View(data_auslaenderanteil_kantonal)
+
+```
+
+> 2.  Die **viewer `gt()`** und **`kable()`** produzieren u.U. komplexe/grosse Tabellen, dies kann zu **Rendering-Problemen** bei der Gerneration von Quarto-Dokumenten führen.
 >
-> Nachfolgend werden grosse Tabellen dargestellt, welche vermutlich aufgrund Memory Exhaustion einen Seitenrefresh triggern und dadurch die Generierung des Quarto Dokuments abbricht.
+>     Nachfolgend werden grosse Tabellen dargestellt, welche vermutlich aufgrund Memory Exhaustion einen Seitenrefresh triggern und dadurch die Generierung des Quarto Dokuments abgebrochen.
+>
+>     Als alternativer "Viewer" wird mit **`dataframe()`** eine reduzierte aber dafür interaktive Tabelle erstellt.
 
 ```{r}
 #| eval: FALSE
@@ -109,16 +122,28 @@ gt(data_staatenkleingruppe)
 kable(data_staatenkleingruppe)
 ```
 
+#### Daten betrachten
 
 ```{r}
+
+# Komplettes dataframe als interaktive Tabelle
+datatable(data_staatenkleingruppe, height = 500)
+
+# Ein flüchtiger Blick ("glimpse") auf die Daten
 glimpse(data_staatenkleingruppe)
 
+# Spaltenüberschriften des df
 names(data_staatenkleingruppe)
+
+# Einzigartige Werte der Spalten von Interesse - Staatenkleingruppen
 unique(data_staatenkleingruppe$staatenkleingruppe)
+# Einzigartige Werte der Spalten von Interesse - Stadtkreise
 unique(data_staatenkleingruppe$stadtkreis)
+# Einzigartige Werte der Spalten von Interesse - Quartiere
 unique(data_staatenkleingruppe$quartier)
 
-## Einwohner pro Jahr
+
+# Einwohner pro Jahr - Dient u.a. zur Einschätzung der Grössenordnung
 data_staatenkleingruppe %>%
   group_by(jahr) %>%
   summarize(summe_anzahl = sum(anzahl, na.rm = TRUE))
@@ -141,15 +166,28 @@ data_staatenkleingruppe %>%
 data_staatenkleingruppe_false <- data_staatenkleingruppe %>%
   filter(anzahl_ist_kleingruppe == FALSE)
 
+datatable(data_staatenkleingruppe_false, height = 250)
+
 ```
 
-Alternative Varianten, falls Filter auf NA-Werten nicht bereits existiert, zu dessen Überprüfung oder Wahl anderer/mehrerer Spalten:
+> Alternative Varianten, falls Filter auf NA-Werten nicht bereits existiert, sind u.a.
+>
+> -   Filter auf Spalte "Anzahl\
+>     `filter(is.na(anzahl)) bzw. filter(!is.na(anzahl))`
+>
+> -   Filter auf Datensätze mit NA in irgendeiner resp. keiner Spalte\
+>     `filter(if_any(everything(), is.na))`\
+>     oder\
+>     `data_staatenkleingruppe[complete.cases(data_staatenkleingruppe), ]` bzw.\
+>     `data_staatenkleingruppe[!complete.cases(data_staatenkleingruppe), ]`
+>
+> ```         
+> Alternativer Code nachfolgend vorhanden aber nicht ausgegeben im Quarto Dokument.
+> ```
 
 ```{r}
 #| eval: FALSE
-# true = Code ausführen
-#| echo: false
-# true = Code ausführen, aber im Quarto Dokument nur Ergebnis anzeigen
+#| echo: FALSE
 
 data_staatenkleingruppe_anzahl_na <- data_staatenkleingruppe %>%
   filter(is.na(anzahl)) %>%
@@ -161,7 +199,7 @@ data_staatenkleingruppe_anzahl_na <- data_staatenkleingruppe %>%
     
     ## ODER
    
-    #data_staatenkleingruppe_na <- data_staatenkleingruppe[!complete.cases(data_staatenkleingruppe), ]
+    data_staatenkleingruppe_na <- data_staatenkleingruppe[!complete.cases(data_staatenkleingruppe), ]
 
 data_staatenkleingruppe_anzahl_ohne_na <- data_staatenkleingruppe %>%
   filter(!is.na(anzahl)) %>%
@@ -186,8 +224,10 @@ data_staatenkleingruppe_false <- data_staatenkleingruppe %>%
  filter(if_all(c(jahr, staatenkleingruppe, stadtkreis, quartier, anzahl), ~!is.na(.)))
 
 
-gt(data_staatenkleingruppe_false)
+# Datatable: Verwendung von dt() um Tabellen im Quarto Dokument interaktive abzubilden und somit auch grössere Tabellen auf kleinerem Raum einzubinden.
 
+#gt(data_staatenkleingruppe_false)
+datatable(data_staatenkleingruppe_false)
 
 ```
 
@@ -203,14 +243,28 @@ data_staatenkleingruppe_reduced <- data_staatenkleingruppe_false %>%
   summarise(anzahl = sum(anzahl), 
             .groups = "drop")
 
-# WICHTIG: .groups Argument wird benötigt. Das Ergebnis nach Verwendung von group_by() und summarise() bleibt standardmäßig gruppiert und so ist die Anzeige viaz.B. gt() suboptimal
+```
+
+> WICHTIG: **.groups** Argument wird benötigt. Das Ergebnis nach Verwendung von group_by() und summarise() **bleibt sonst standardmäßig gruppiert** und so ist die Anzeige via z.B. gt() suboptimal.
+>
+> Nachfolgend ist ein Code Chunk mit kable() und gt() aufgrund des Reender Problems ausgeschlossen (siehe [Vorwort zur Problemstellung mit "Viewern"])
+
+```{r}
+#| eval: FALSE
+#| echo: FALSE
 
 kable(data_staatenkleingruppe_reduced)
 gt(data_staatenkleingruppe_reduced)
 
+```
+
+Betrachtung und Speichern des neu erstellten df
+
+```{r}
+datatable(data_staatenkleingruppe_false, height = "500px")
+
 write_csv(x = data_staatenkleingruppe_reduced,
           here::here("data/processed/data_staatenkleingruppe_reduced.csv"))
-
 
 ```
 
@@ -221,7 +275,6 @@ Ausländeranteil der Stadt Winterthur der letzten 10 Jahre @tbl-anteile
 ```{r}
 #| label: tbl-anteile
 #| tbl-cap: "Ausländeranteil Stadt Winterthur der letzten 10 Jahre"
-
 
 # Berechne die Gesamteinwohnerzahl pro Jahr
 
