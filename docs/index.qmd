@@ -8,11 +8,14 @@ format:
     toc: true
 editor: visual
 chunk_output_type: console
+#Code chunks standardmässig ausblenden und nur Ergebnisse anzeigen
+#code_folding: hide
 ---
 
 # Packages laden
 
 ```{r}
+#| message: FALSE
 
 library(readr)
 library(dplyr)
@@ -33,10 +36,12 @@ library(gt)        # Package wird für Funktion gt() geladen
 ```{r}
 
 data_staatenkleingruppe <-  read_csv(here::here("data/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv"))
+# The view() function is not compatible with R Markdown rendering
 #View(data_staatenkleingruppen)
   
 
 data_auslaenderanteil_kantonal <- read_delim('https://www.web.statistik.zh.ch/ogd/data/KANTON_ZUERICH_205.csv')
+# The view() function is not compatible with R Markdown rendering
 # View(import_table_auslaenderanteil_kantonal)
 
 # tbd
@@ -86,14 +91,26 @@ Erster Teil der Analyse, Entwicklung des Ausländeranteils der vergangenen 10 Ja
 
 #### Daten betrachten
 
+
+> Die beiden **viewer `gt()`** und **`kable()`** produzieren u.U. komplexe/grosse Tabellen, dies kann zu **Rendering-Problemen** führen.
+>
+> Nachfolgend werden grosse Tabellen dargestellt, welche vermutlich aufgrund Memory Exhaustion einen Seitenrefresh triggern und dadurch die Generierung des Quarto Dokuments abbricht.
+
 ```{r}
+#| eval: FALSE
+#| echo: FALSE
+
+# Code und Output unterdrücken für die Erstellung des Quarto Dokuments
 
 ## Viewer 
 gt(data_staatenkleingruppe)
 
 ## Console
 kable(data_staatenkleingruppe)
+```
 
+
+```{r}
 glimpse(data_staatenkleingruppe)
 
 names(data_staatenkleingruppe)
@@ -129,9 +146,10 @@ data_staatenkleingruppe_false <- data_staatenkleingruppe %>%
 Alternative Varianten, falls Filter auf NA-Werten nicht bereits existiert, zu dessen Überprüfung oder Wahl anderer/mehrerer Spalten:
 
 ```{r}
-
-#| eval: false
-# Code nicht ausführen
+#| eval: FALSE
+# true = Code ausführen
+#| echo: false
+# true = Code ausführen, aber im Quarto Dokument nur Ergebnis anzeigen
 
 data_staatenkleingruppe_anzahl_na <- data_staatenkleingruppe %>%
   filter(is.na(anzahl)) %>%
@@ -201,8 +219,6 @@ write_csv(x = data_staatenkleingruppe_reduced,
 Ausländeranteil der Stadt Winterthur der letzten 10 Jahre @tbl-anteile
 
 ```{r}
-
-
 #| label: tbl-anteile
 #| tbl-cap: "Ausländeranteil Stadt Winterthur der letzten 10 Jahre"
 
@@ -233,7 +249,6 @@ gt(overview_city)
 Ausländeranteil der Stadtkreise von Winterthur der letzten 10 Jahre @tbl-anteile-stadtkreis
 
 ```{r}
-
 #| label: tbl-anteile-stadtkreis
 #| tbl-cap: "Ausländeranteil der Stadtkreise von Winterthur der letzten 10 Jahre"
 
@@ -270,7 +285,6 @@ gt(overview_stadtkreis)
 Ausländeranteil der Quartiere von Winterthur der letzten 10 Jahre @tbl-anteile-quartier
 
 ```{r}
-
 #| label: tbl-anteile-quartier
 #| tbl-cap: "Ausländeranteil der Quartiere von Winterthur der letzten 10 Jahre"
 
@@ -315,9 +329,7 @@ gt(overview_quartier)
 # Daten Visualisierung
 
 ```{r}
-
-
-#| eval: true
+#| eval: TRUE
 
 
 # Die Visualisierung auf Ebene Stadtkreis zeigt einen Ausreisser namens "unbekannt". Es handelt sich um 3 Positionen aus den Jahren 2014, 2015 und 2016 welche knapp 50 Einwohne betreffen. Es handelt sich um eine vernachlässigbare Grössenordnung und wird in dieser Betrachtung deshalb ausgeschlossen.
@@ -337,7 +349,6 @@ gt(overview_stadtkreis_cleaned)
 Stadt Winterthur und die Entwicklung des Ausländeranteils @fig-anteil-stadt
 
 ```{r}
-
 #| label: fig-anteil-stadt
 #| fig-cap: "Entwicklung des prozentualen Ausländeranteils der Stadt Winterthur"
 #| warning: false
@@ -363,7 +374,6 @@ ggplot(data = overview_city,
 Stadtkreise Winterthurs und deren Entwicklung des Ausländeranteils @fig-anteil-stadtkreise (stacked)
 
 ```{r}
-
 #| label: fig-anteil-stadtkreis
 #| fig-cap: "Entwicklung des prozentualen Ausländeranteils innerhalb der Stadtkreise von Winterthur"
 #| warning: false
@@ -391,7 +401,6 @@ ggplot(data = overview_stadtkreis_cleaned,
 Stadtkreise Winterthurs und deren Entwicklung des Ausländeranteils @fig-anteil-stadtkreise (Ein Diagramm pro Stadtkreis)
 
 ```{r}
-
 #| label: fig-anteil-quartier
 #| fig-cap: "Entwicklung des prozentualen Ausländeranteils innerhalb der Quartiere von Winterthur"
 #| warning: false
@@ -420,7 +429,6 @@ ggplot(data = overview_stadtkreis_cleaned,
 WIP
 
 ```{r}
-
 
 # Liniendiagramm mit Facetten
 ggplot(data = overview_stadtkreis_cleaned,

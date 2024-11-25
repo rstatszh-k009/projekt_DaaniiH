@@ -1,0 +1,145 @@
+---
+title: "Abschlussprojekt"
+subtitle: "rstatsZH-K009: "
+author: "DaaniiH"
+format: 
+  html:
+    embed-resources: true
+    toc: true
+editor: visual
+chunk_output_type: console
+#Code chunks standardmässig ausblenden und nur Ergebnisse anzeigen
+#code_folding: hide
+---
+
+# Packages laden
+
+```{r}
+#| message: FALSE
+
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(forcats)
+library(ggthemes)
+library(scales)
+library(lubridate)
+library(knitr)     # Package wird für Funktion kable() geladen
+library(DT)        # Package wird für Funktion datatable() geladen
+library(gt)        # Package wird für Funktion gt() geladen
+
+```
+
+# Daten laden
+
+
+```{r}
+#| eval: FALSE
+# Der Code wird gezeigt, aber nicht ausgeführt.
+```
+
+Code ausführen, aber nicht anzeigen:
+```{r}
+#| echo: FALSE
+# Der Output wird gezeigt, der Code hingegen nicht.
+```
+
+Code und Output unterdrücken:
+```{r}
+#| eval: FALSE
+#| echo: FALSE
+# Der Code und der Output werden nicht gezeigt und nicht ausgeführt.
+
+```
+
+
+```{r}
+
+data_staatenkleingruppe <-  read_csv(here::here("data/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv"))
+# The view() function is not compatible with R Markdown rendering
+#View(data_staatenkleingruppen)
+  
+
+#data_auslaenderanteil_kantonal <- read_delim('https://www.web.statistik.zh.ch/ogd/data/KANTON_ZUERICH_205.csv')
+# The view() function is not compatible with R Markdown rendering
+# View(import_table_auslaenderanteil_kantonal)
+
+# tbd
+# data_geo_coordinates_ktzh <- read_csv
+
+```
+
+# Einleitung
+
+Die Bevölkerung in Winterthur - Ein Einblick in Altersstruktur und Migration.
+
+## Daten
+
+Bei den Rohdatenhandelt es sich um CSV Dateien aus dem Datenkatalog des Kantons Zürich.
+
+[Quellen]{.underline}
+
+-   Bevölkerung, nach Staatenkleingruppe und Quartier\
+    [https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2604\@stadt-winterthur](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/2604@stadt-winterthur)
+
+-   Ausländeranteil\
+    <https://openzh.github.io/starter-code-openZH/>\
+    [https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/68\@statistisches-amt-kanton-zuerich](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/68@statistisches-amt-kanton-zuerich)
+
+-   Link zum GIS Browser Datendownload\
+    [https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/278\@opendata-giszh-ktzh/distributions/1](https://www.zh.ch/de/politik-staat/statistik-daten/datenkatalog.html#/datasets/278@opendata-giszh-ktzh/distributions/1) bzw. <http://maps.zh.ch/?topic=BASISKARTEZH&showtab=ogddownload>
+
+## Analyseziele
+
+Im Rahmen der Analyse werden die Daten aufbereitet und in ein Tidy Data Format gebracht, erkundet und visualisiert.
+
+-   **Teil 1\
+    **Erkenntnisse zur Entwicklung von **Ausländeranteil** der Stadt Winterthur (sowie der Stadkreise bzw. Quartiere) über die vergangenen 10 Jahre schaffen.
+
+    Benötigte Daten: Jahr, Stadkreis, Quartier, Ausländeranteil
+
+-   **Teil 2\
+    **Ausländeranteil vergleichen mit **i) kantonalen Zahlen** und **ii) geografische Heatmap** erstellen.
+
+    Benötigte Daten: Jahr, Ausländeranteil, Gebiet (inkl. Koordinaten)
+
+# Daten Aufbereitung
+
+Erster Teil der Analyse, Entwicklung des Ausländeranteils der vergangenen 10 Jahre.
+
+### Staatenkleingruppen
+
+#### Daten betrachten
+
+> Die beiden **viewer `gt()`** und **`kable()`** produzieren u.U. komplexe/grosse Tabellen, dies kann zu **Rendering-Problemen** führen.
+>
+> Nachfolgend werden grosse Tabellen dargestellt, welche vermutlich aufgrund Memory Exhaustion einen Seitenrefresh triggern und dadurch die Generierung des Quarto Dokuments abbricht.
+
+```{r}
+#| eval: FALSE
+#| echo: FALSE
+
+## Viewer 
+gt(data_staatenkleingruppe)
+
+## Console
+kable(data_staatenkleingruppe)
+
+```
+
+```{r}
+
+glimpse(data_staatenkleingruppe)
+
+names(data_staatenkleingruppe)
+unique(data_staatenkleingruppe$staatenkleingruppe)
+unique(data_staatenkleingruppe$stadtkreis)
+unique(data_staatenkleingruppe$quartier)
+
+## Einwohner pro Jahr
+data_staatenkleingruppe %>%
+  group_by(jahr) %>%
+  summarize(summe_anzahl = sum(anzahl, na.rm = TRUE))
+
+```
