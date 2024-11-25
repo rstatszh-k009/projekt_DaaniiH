@@ -29,11 +29,11 @@ library(gt)        # Package wird für Funktion gt() geladen
 
 ```{r}
 
-data_staatenkleingruppe <-  read_csv("data/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv")
+data_staatenkleingruppe <-  read_csv(here::here("data/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv"))
 #View(data_staatenkleingruppen)
   
 
-data_geschlecht_heimat <- read_csv("data/raw/Geschlecht_Alter_KTZH_00002605_00005330.csv")
+data_geschlecht_heimat <- read_csv(here::here("data/raw/Geschlecht_Alter_KTZH_00002605_00005330.csv"))
 #View(import_table_geschlecht)
 
 
