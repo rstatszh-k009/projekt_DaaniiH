@@ -2,7 +2,8 @@
 title: "Abschlussprojekt"
 subtitle: "rstatsZH-K009: "
 author: "DaaniiH"
-format: 
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+format:
   html:
     embed-resources: true
     toc: true
@@ -26,30 +27,52 @@ library(forcats)
 library(ggthemes)
 library(scales)
 library(lubridate)
+library(viridis)
 library(knitr)     # Package wird für Funktion kable() geladen
 library(DT)        # Package wird für Funktion datatable() geladen
 library(gt)        # Package wird für Funktion gt() geladen
 library(kableExtra) # Package wird für detailiertere kable() bzw. kbl() Tabellen benötigt.
 ```
 
+# Einleitung
+
+Hierbei handelt es sich um einen Übungscode bzw. -Dokument um die sich die Basics von R und Quarto-Dokumenten anzueignen.
+
+Es erfolgt hierzu eine Auseinandersetzung mit den Daten zur Bevölkerung in Winterthur, welche einen Einblick in die Entwicklung des Ausländeranteils liefern sollen.
+
 # Daten laden
+
+Import der Rohdaten der Stadt Winterthur
 
 ```{r}
 
-data_staatenkleingruppe <-  read_csv(here::here("data/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv"))
+data_staatenkleingruppe_bfs <-  read_csv(here::here("data/raw/Quartiere_Jahr_KTZH_00002604_00005328.csv"),
+                                     #detailiertere Betrachtung folgt später, deshalb Anzeige der Details hier unterdrückt
+                                     show_col_types = FALSE)
+```
 
-data_auslaenderanteil_kantonal <- read_delim('https://www.web.statistik.zh.ch/ogd/data/KANTON_ZUERICH_205.csv')
+Import der Rohdaten des Kanton Zürichs
+
+```{r}
+#| label: fig-raw-kanton
+#| fig-cap: "Rohdaten Kanton Zürich"
+#| warning: false
+
+data_auslaenderanteil_kantonal <- read_delim('https://www.web.statistik.zh.ch/ogd/data/KANTON_ZUERICH_205.csv',
+                                             #detailiertere Betrachtung folgt später, deshalb Anzeige der Details hier unterdrückt
+                                             show_col_types = FALSE)
+```
+
+tbd geo coordinates
+
+```{r}
 
 # tbd
 # data_geo_coordinates_ktzh <- read_csv
 
 ```
 
-# Einleitung
-
-Die Bevölkerung in Winterthur - Ein Einblick in die Entwicklung des Ausländeranteils.
-
-## Daten
+# Daten
 
 Bei den Rohdatenhandelt es sich um CSV Dateien aus dem Datenkatalog des Kantons Zürich.
 
@@ -70,9 +93,7 @@ Bei den Rohdatenhandelt es sich um CSV Dateien aus dem Datenkatalog des Kantons 
 Im Rahmen der Analyse werden die Daten aufbereitet und in ein Tidy Data Format gebracht, erkundet und visualisiert.
 
 -   **Teil 1\
-    **Erkenntnisse zur Entwicklung von **Ausländeranteil** der Stadt Winterthur (sowie der Stadkreise bzw. Quartiere) über die vergangenen 10 Jahre schaffen.
-
-    Benötigte Daten: Jahr, Stadkreis, Quartier, Ausländeranteil
+    **Erkenntnisse zur Veränderung des Ausländeranteils der letzten 10 Jahren der **Stadt Winterthur** sowie der letzten 3 Jahre der **Stadtkreise Winterthurs** schaffen.
 
 -   **Teil 2\
     **Ausländeranteil vergleichen mit **i) kantonalen Zahlen** und **ii) geografische Heatmap** erstellen.
@@ -83,31 +104,38 @@ Im Rahmen der Analyse werden die Daten aufbereitet und in ein Tidy Data Format g
 
 Erster Teil der Analyse, Entwicklung des Ausländeranteils der vergangenen 10 Jahre.
 
-### Staatenkleingruppen
+## Datenbetrachtung
 
-#### Vorwort zur Problemstellung mit "Viewern"
+### Vorwort zur Problemstellung mit "Viewern" in Quarto Dokumenten
 
 > 1.  Die Funktion **`view()`** kann nicht in ein Quarto Dokument eingebettet werden und muss deshalb bei Erstellung desselben ausgeschlossen werden.
+>
+>     [Lösung]{.underline}
+>
+>     `#| eval: false` **verhindert die Ausführung** des Codes. Der Code wird nicht evaluiert und keine Ergebnisse werden generiert.
+>
+>     `#| echo: false` **unterdrückt die Anzeige** des Quellcodes im finalen Dokument. Der Code wird ausgeführt, aber nicht im Output angezeigt.
+>
+>     Mittels beider Optionen wird der Code **weder ausgeführt noch angezeigt**. Nützlich um Code temporär zu deaktivieren oder zu dokumentieren, ohne ihn auszuführen oder anzuzeigen.
 
 ```{r}
-#| eval: false
-#| echo: false
+#| eval: FALSE
+#| echo: FALSE
 
-
-#| eval: false
-#| echo: false
 
 # The view() function is not compatible with R Markdown rendering
- View(data_staatenkleingruppe)
+ View(data_staatenkleingruppe_bfs)
  View(data_auslaenderanteil_kantonal)
 
 ```
 
 > 2.  Die **viewer `gt()`** und **`kable()`** produzieren u.U. komplexe/grosse Tabellen, dies kann zu **Rendering-Problemen** bei der Gerneration von Quarto-Dokumenten führen.
 >
->     Nachfolgend werden grosse Tabellen dargestellt, welche vermutlich aufgrund Memory Exhaustion einen Seitenrefresh triggern und dadurch die Generierung des Quarto Dokuments abgebrochen.
+>     Nachfolgend würden mit **`gt()`** und **`kable()`** grosse Tabellen dargestellt werden, welche aufgrund Memory Exhaustion einen Seitenrefresh triggern und dadurch die Generierung des Quarto Dokuments abbrechen.
 >
->     Als alternativer "Viewer" wird mit **`dataframe()`** eine reduzierte aber dafür interaktive Tabelle erstellt.
+>     [Lösung]{.underline}
+>
+>     Als alternativer "Viewer" wird mit **`datatable()`** eine reduzierte und zugleich interaktive Tabelle erstellt.
 
 ```{r}
 #| eval: FALSE
@@ -116,58 +144,206 @@ Erster Teil der Analyse, Entwicklung des Ausländeranteils der vergangenen 10 Ja
 # Code und Output unterdrücken für die Erstellung des Quarto Dokuments
 
 ## Viewer 
-gt(data_staatenkleingruppe)
+gt(data_staatenkleingruppe_bfs)
 
 ## Console
-kable(data_staatenkleingruppe)
+kable(data_staatenkleingruppe_bfs)
 ```
 
-#### Daten betrachten
+### Daten betrachten (mit Ausgabe in Quarto-Dokument)
+
+#### Komplettes dataframe als interaktive Tabelle
+
+`datatable()` kann um Argumente ergänzt werden, um dem Nutzer rudimentäre Sortierungen und Suchen zu ermöglichen. (@tbl-datatable)
 
 ```{r}
+#| label: tbl-datatable
+#| tbl-cap: "Funktion datatable()"
 
-# Komplettes dataframe als interaktive Tabelle
-datatable(data_staatenkleingruppe, height = 500)
+datatable(data_staatenkleingruppe_bfs,
+          filter = 'top',
+          options = list(pageLength = 5,
+          search = list(regex = TRUE,
+                        caseInsensitive = TRUE)))
+```
 
-# Ein flüchtiger Blick ("glimpse") auf die Daten
+#### Reduziertes dataframe mit SearchBuilder Funktion
+
+Zur besseren Übersicht und aufgrund Redundanz mit Klarnamen, werden Spalten mit BFS-Nummern entfernt.
+
+Für die individuelle Selektion durch den Nutzer kann die Extenstion `'SearchBuilder'` aktiviert werden. (@tbl-datatable-enhanced)
+
+```{r}
+#| label: tbl-datatable-enhanced
+#| tbl-cap: "Funktion datatable() mit Filtermöglichkeit"
+
+data_staatenkleingruppe <- data_staatenkleingruppe_bfs %>%
+  select(-contains("bfs_nr"))
+    
+data_staatenkleingruppe %>% datatable(filter = "top",
+              extensions = 'SearchBuilder',
+              options = list(pageLength = 10,
+                             dom = 'Qlfrtip',
+                             searchBuilder = TRUE))
+```
+
+#### Betrachtung der Datentypen und eindeutigen Werten
+
+`glimpse()` um einen **"flüchtigen" Blick** auf die Daten zu erhalten
+
+```{r}
 glimpse(data_staatenkleingruppe)
+```
 
-# Spaltenüberschriften des df
+`names()` um alle **Spaltenüberschriften** zu erhalten
+
+```{r}
 names(data_staatenkleingruppe)
+```
 
-# Einzigartige Werte der Spalten von Interesse - Staatenkleingruppen
+`unique()` um die **eindeutigen Werte** spezifischer Spalten zu erhalten
+
+```{r}
+unique(data_staatenkleingruppe$region)
 unique(data_staatenkleingruppe$staatenkleingruppe)
-# Einzigartige Werte der Spalten von Interesse - Stadtkreise
 unique(data_staatenkleingruppe$stadtkreis)
-# Einzigartige Werte der Spalten von Interesse - Quartiere
 unique(data_staatenkleingruppe$quartier)
+```
+
+#### Einwohner pro Jahr (@tbl-einw)
+
+```{r}
+#| label: tbl-einw
+#| tbl-cap: "Einwohner der Stadt Winterthur der letzten 10 Jahre"
 
 
-# Einwohner pro Jahr - Dient u.a. zur Einschätzung der Grössenordnung
+  data_staatenkleingruppe %>%   group_by(jahr) %>%
+    summarize(summe_anzahl = sum(anzahl, na.rm = TRUE))
+```
+
+## 
+
+## Daten transformieren
+
+### "Unbekannt" prüfen / ausschliessen {#na-prüfen-ausschliessen}
+
+Aus den vorangehenden `unique()`-Abfragen ([Betrachtung der Datentypen und eindeutigen Werten]) ist ersichtlich, dass einige Gebiete und Gruppen **"unbekannt"-Einträge** aufweisen.
+
+Ein genauerer Blick auf die Daten zeigt, dass dieser Anteil in absoluten Zahlen über die gesamte Dekade im zweistelligen Bereich bleibt. Dies macht **maximal 0.022% der Gesamtbevölkerung** aus, wobei Durchschnitt und Median bei unter 0.00376% (Durchschnitt) bzw. 0.00094% (Median) bleiben.
+
+Nachfolgende Übersicht mit `gt()` zeigt die Top 3 der "unbekannt"-Einträge pro Jahr, sowie Jahres-Durchschnitt und n-Median. (@tbl-unbekannt-eintraege)
+
+```{r}
+#| label: tbl-unbekannt-eintraege
+#| tbl-cap: "Unbekannt-Einträge: Top 3 pro Jahr"
+
+
 data_staatenkleingruppe %>%
-  group_by(jahr) %>%
-  summarize(summe_anzahl = sum(anzahl, na.rm = TRUE))
+  
+  #Nur Einträge mit Werten in Spalte "anzahl"
+  filter(anzahl_ist_kleingruppe !="TRUE") %>% 
+  
+  #Einwohner pro Jahr
+  group_by(jahr) %>% 
+  mutate(einwohner_total = sum((anzahl), na.rm = TRUE)) %>% 
+  ungroup() %>% 
+
+  #Nur Zeilen mit unbekannt-Einträgen
+  filter(stadtkreis == "unbekannt" |
+         quartier == "unbekannt" |
+         staatenkleingruppe == "unbekannt" |
+         region == "unbekannt") %>%
+  
+  #print(n=nrow(.)) %>% 
+  
+  #Spalten reduziern
+  select(-gemeinde, -staatenkleingruppe, -region) %>% 
+  
+  #Gruppieren
+  group_by(jahr, stadtkreis, quartier, einwohner_total) %>% 
+  summarise(anzahl_unbekannt = sum(anzahl),
+            .groups = 'drop') %>% 
+
+  #print(n=nrow(.)) %>% 
+  group_by(jahr) %>% 
+  mutate(einwohner_unbekannt_pct_jahr = round((anzahl_unbekannt / einwohner_total * 100), 5),
+         einwohner_unbekannt_total_jahr = sum(anzahl_unbekannt, na.rm = TRUE),
+         average_jahr = round(mean(einwohner_unbekannt_pct_jahr),5),
+         median_jahr = round(median(einwohner_unbekannt_pct_jahr),5)) %>%  
+  arrange(desc(einwohner_unbekannt_pct_jahr)) %>%  
+ 
+  #print(n=nrow(.)) %>% 
+  
+  slice_head(n = 3) %>%
+  #arrange(desc(einwohner_unbekannt_pct)) %>%
+  gt() %>%
+  summary_rows(columns = c(anzahl_unbekannt,
+                           einwohner_unbekannt_pct_jahr),
+               fns = list(Summe = "sum")) %>% 
+  
+   tab_style(style = cell_fill(color = "lightblue"),
+            locations = cells_body(columns = c("einwohner_unbekannt_pct_jahr",
+                                               "average_jahr",
+                                               "median_jahr"))) %>%
+ 
+   opt_interactive(use_sorting = TRUE,
+                  use_filters = TRUE)
+```
+
+Aufgrund der vernachlässigbare Grössenordnung werden Zeilen mit "unbekannt"-Werten in der weiteren Betrachtung ausgeschlossen. (@tbl-stadtkreis-cleaned)
+
+```{r}
+#| eval: TRUE
+#| label: tbl-stadtkreis-cleaned
+#| tbl-cap: "Auswertung nach Stadtkreis"
+
+data_staatenkleingruppe_cleaned <- data_staatenkleingruppe %>% 
+  filter(stadtkreis != "unbekannt" &
+         quartier != "unbekannt" &
+         staatenkleingruppe != "unbekannt" &
+         region != "unbekannt")
+
+datatable(data_staatenkleingruppe_cleaned,
+          filter = "top",
+              extensions = 'SearchBuilder',
+              options = list(pageLength = 12,
+                             dom = 'Qlfrtip',
+                             searchBuilder = TRUE))
 
 ```
 
-#### NA prüfen / ausschliessen
+### NA prüfen / ausschliessen
+
+Mit "anzahl_ist_kleingruppe" besteht eine Filtermöglichkeit für den NA-Ausschluss in Spalte "anzahl" (@tbl-na-uebersicht)
 
 ```{r}
-
-## NA-Ausschluss für Spalte "anzahl" kann mit Filter auf "anzahl_ist_kleingruppe" gemacht werden.
+#| label: tbl-na-uebersicht
+#| tbl-cap: "Zeilen mit NA-Einträgen"
 
 ## Übersicht 
-data_staatenkleingruppe %>%
+data_staatenkleingruppe_cleaned %>%
   group_by(anzahl_ist_kleingruppe, jahr) %>%
   summarise(anzahl_zeilen = n(),
             summe_anzahl = sum(anzahl, na.rm = TRUE))
+```
+
+Nach Auschluss der NA-Werte haben alle Zeilen einen Wert in Spalte "anzahl" (@tbl-na-werte)
+
+```{r}
+#| label: tbl-na-werte
+#| tbl-cap: "Zeilen mit NA-Einträgen (reduzierte Ansicht)"
 
 ## Auschluss NA-Zeilen
-data_staatenkleingruppe_false <- data_staatenkleingruppe %>%
-  filter(anzahl_ist_kleingruppe == FALSE)
+data_staatenkleingruppe_false <- data_staatenkleingruppe_cleaned %>%
+  filter(anzahl_ist_kleingruppe == FALSE) 
 
-datatable(data_staatenkleingruppe_false, height = 250)
-
+data_staatenkleingruppe_false %>% 
+  select(jahr,
+         stadtkreis,
+         region,
+         anzahl,
+         anzahl_ist_kleingruppe) %>% 
+  datatable()
 ```
 
 > Alternative Varianten, falls Filter auf NA-Werten nicht bereits existiert, sind u.a.
@@ -181,9 +357,7 @@ datatable(data_staatenkleingruppe_false, height = 250)
 >     `data_staatenkleingruppe[complete.cases(data_staatenkleingruppe), ]` bzw.\
 >     `data_staatenkleingruppe[!complete.cases(data_staatenkleingruppe), ]`
 >
-> ```         
-> Alternativer Code nachfolgend vorhanden aber nicht ausgegeben im Quarto Dokument.
-> ```
+>     Alternativer Code vorhanden aber nicht ausgeführt/ausgegeben im Quarto Dokument.
 
 ```{r}
 #| eval: FALSE
@@ -231,7 +405,13 @@ datatable(data_staatenkleingruppe_false)
 
 ```
 
-#### Feld "**herkunft**" hinzufügen, dataframe reduzieren auf benötigte Felder und danach als CSV speichern
+### Feld `'herkunft'` hinzufügen und dataframe auf benötigte Felder reduzieren
+
+"Schweiz" ist als Wert vorhanden, ergo können alle ungleichen Werte als "Ausland" betrachtet werden. Das Feld `herkunft` ist sozusagen ein boolescher Datentyp.
+
+Es wird davon ausgegangen, dass kein Schweizer zur Staatenkleingruppe "unbekannt" gehört.
+
+NA-Werte sind bereits bereinigt (siehe [NA prüfen / ausschliessen](#na-prüfen-ausschliessen)).
 
 ```{r}
 
@@ -242,12 +422,11 @@ data_staatenkleingruppe_reduced <- data_staatenkleingruppe_false %>%
   group_by(jahr, herkunft, stadtkreis, quartier) %>% 
   summarise(anzahl = sum(anzahl), 
             .groups = "drop")
-
 ```
 
-> WICHTIG: **.groups** Argument wird benötigt. Das Ergebnis nach Verwendung von group_by() und summarise() **bleibt sonst standardmäßig gruppiert** und so ist die Anzeige via z.B. gt() suboptimal.
+> WICHTIG: **`.groups`** Argument wird benötigt. Das Ergebnis nach Verwendung von `group_by()` und `summarise()` **bleibt sonst standardmäßig gruppiert** und so ist die Anzeige via z.B. `gt()` suboptimal.
 >
-> Nachfolgend ist ein Code Chunk mit kable() und gt() aufgrund des Reender Problems ausgeschlossen (siehe [Vorwort zur Problemstellung mit "Viewern"])
+> Nachfolgend ist ein Code Chunk mit `kable()` und `gt()` aufgrund des Reender Problems ausgeschlossen (siehe [Vorwort zur Problemstellung mit "Viewern" in Quarto Dokumenten])
 
 ```{r}
 #| eval: FALSE
@@ -255,28 +434,45 @@ data_staatenkleingruppe_reduced <- data_staatenkleingruppe_false %>%
 
 kable(data_staatenkleingruppe_reduced)
 gt(data_staatenkleingruppe_reduced)
-
 ```
 
-Betrachtung und Speichern des neu erstellten df
+### Betrachtung des transformierten dataframes @tbl-staatenkleingruppe-cleaned)
 
 ```{r}
-datatable(data_staatenkleingruppe_false, height = "500px")
+#| eval: TRUE
+#| label: tbl-staatenkleingruppe-cleaned
+#| tbl-cap: "Transformiertes Dataframe"
 
-write_csv(x = data_staatenkleingruppe_reduced,
-          here::here("data/processed/data_staatenkleingruppe_reduced.csv"))
-
+datatable(data_staatenkleingruppe_reduced,
+          filter = "top",
+              extensions = 'SearchBuilder',
+              options = list(pageLength = 8,
+                             dom = 'Qlfrtip',
+                             searchBuilder = TRUE))
 ```
 
-#### Statistische Kennzahlen und Übersichten erstellen
+### Speichern des transformierten dataframes
 
-Ausländeranteil der Stadt Winterthur der letzten 10 Jahre @tbl-anteile
+```{r}
+write_csv(x = data_staatenkleingruppe_reduced,
+          here::here("data/processed/data_staatenkleingruppe_reduced.csv"))
+```
+
+# Ergebnisse
+
+#### Statistische Kennzahlen und Übersichten
+
+Ausländeranteile der **Stadt Winterthur** der letzten 10 Jahre (@tbl-anteile) inkl. der Veränderung der Ausländerquote in Prozentpunkten.
+
+[Erkenntnis:]{.underline}
+
+-   Es besteht eine stetige Zunahme des Ausländeranteils.
+
+-   Die Zunahme bewegt sich im Promillebereich.
 
 ```{r}
 #| label: tbl-anteile
 #| tbl-cap: "Ausländeranteil Stadt Winterthur der letzten 10 Jahre"
-
-# Berechne die Gesamteinwohnerzahl pro Jahr
 
 
 ## Einwohner pro Jahr inkl. Ausländeranteil
@@ -289,22 +485,59 @@ overview_city <- data_staatenkleingruppe_reduced %>%
             einwohner_schweiz = sum(anzahl[herkunft != "Ausland"], na.rm = TRUE),
             anteil_schweiz = einwohner_schweiz / einwohner  * 100,
             ## Alternative für ungroup()
-            #.groups = "drop"
-            ) %>%  
+            .groups = "drop") %>%
+  
+  mutate(avg_anteil_ausland = mean(anteil_ausland),
+         median_anteil_ausland = median(anteil_ausland),
+         delta_anteil_ausland_yoy = anteil_ausland - lag(anteil_ausland)) %>% 
+  
   ungroup() %>%
+  arrange(jahr) %>%
+  
   select(jahr,
-         einwohner, einwohner_schweiz, anteil_schweiz, einwohner_ausland, anteil_ausland)
+         einwohner,
+         einwohner_schweiz,
+         anteil_schweiz,
+         einwohner_ausland,
+         anteil_ausland,
+         delta_anteil_ausland_yoy,
+         avg_anteil_ausland,
+         median_anteil_ausland)
 
-gt(overview_city)
+
+gt(overview_city) %>%
+  fmt_number(columns = c(einwohner, einwohner_schweiz, einwohner_ausland),
+             decimals = 0,
+             use_seps = TRUE,
+             sep_mark = "'") %>%
+  fmt_number(columns = delta_anteil_ausland_yoy,
+             decimals = 3,
+             use_seps = TRUE,
+             sep_mark = "'",
+             force_sign = TRUE) %>%
+  fmt_percent(columns = c(anteil_schweiz,
+                          anteil_ausland,
+                          anteil_ausland,
+                          avg_anteil_ausland,
+                          median_anteil_ausland),
+              decimals = 2,
+              scale_values = FALSE)
 
 ```
 
-Ausländeranteil der Stadtkreise von Winterthur der letzten 10 Jahre @tbl-anteile-stadtkreis
+Ausländeranteil der **Stadtkreise** von Winterthur der letzten 3 Jahre (@tbl-anteile-stadtkreis) inkl. der Veränderung deren Ausländerquote in Prozentpunkten.
+
+[Erkenntnis:]{.underline}
+
+-   Bis auf 6 Jahre/Stadtkreise (1.0-2.8), bewegte sich die Zunahme des Ausländeranteils je Stadtkreis während der letzten 3 Jahre bei unter 1 Prozentpunkten
+
+-   Die Zunahme bewegt sich im Promillebereich.
 
 ```{r}
 #| label: tbl-anteile-stadtkreis
-#| tbl-cap: "Ausländeranteil der Stadtkreise von Winterthur der letzten 10 Jahre"
+#| tbl-cap: "Ausländeranteil der Stadtkreise von Winterthur der letzten 3 Jahre"
 
+jahr_filter <- c(2023, 2022, 2021)
 
 ## STADTKREIS
 overview_stadtkreis <- data_staatenkleingruppe_reduced %>%
@@ -316,90 +549,139 @@ overview_stadtkreis <- data_staatenkleingruppe_reduced %>%
             anteil_sk_schweiz = einw_sk_schweiz / einw_sk  * 100,
             ## Alternative für ungroup()
             #.groups = "drop"
-            ) %>%  
+            ) %>%
   ungroup() %>%
+  # der Gesamtwert "einwohner" besteht im df "overview_city" und kann anstelle erneuter   berechnung mittels join dazu genommen werden.
   left_join(overview_city, by = "jahr") %>%
-  mutate(anteil_ausland_stadtkreis_gesamt = (einw_sk_ausland / einwohner) * 100) %>%
+  mutate(anteil_sk_ausland_gesamt = (einw_sk_ausland / einwohner) * 100) %>% 
+  mutate(anteil_einw_sk = einw_sk / einwohner * 100) %>%
+    arrange(stadtkreis, jahr) %>%
+  mutate(delta_anteil_ausland_yoy = anteil_sk_ausland - lag(anteil_sk_ausland)) %>% 
+  # Erneute Gruppierung um die Delta je Jahr UND Quartier zu erhalten, ansonsten würde die Berechnung vom letzen Wert ohne Berücksichtung des Quartiers erfolgen. --> Für 2014 resultiert nun logischerweise ein NA Wert da kein Vergleich zum Vorjahr besteht.
+  group_by(stadtkreis) %>% 
+  arrange(stadtkreis, jahr) %>%
+  ungroup() %>% 
   select(jahr,
          stadtkreis,
+         einwohner,
          einw_sk,
+         anteil_einw_sk,
          einw_sk_schweiz,
          anteil_sk_schweiz,
          einw_sk_ausland,
          anteil_sk_ausland,
-         einwohner,
-         anteil_ausland_stadtkreis_gesamt)
+         delta_anteil_ausland_yoy,
+         anteil_sk_ausland_gesamt)
 
-gt(overview_stadtkreis)
-
-
+overview_stadtkreis %>%
+  filter(jahr %in% jahr_filter) %>% 
+  gt() %>%
+  #cols_hide(columns = c("einw_sk_schweiz")) %>% 
+  opt_interactive(
+    use_sorting = TRUE,
+    use_filters = TRUE,
+    use_resizers = TRUE,
+    use_highlight = TRUE) %>% 
+  fmt_percent(columns = where(is.numeric) & matches("anteil") & !matches("jahr"),
+              decimals = 1,
+              scale_values = FALSE) %>% 
+  fmt_number(columns = delta_anteil_ausland_yoy,
+             decimals = 3,
+             use_seps = TRUE,
+             sep_mark = "'",
+             force_sign = TRUE) %>%
+  fmt_number(columns = where(is.numeric) & !matches("anteil") & !matches("jahr"),
+             decimals = 0,
+             use_seps = TRUE,
+             sep_mark = "'") %>% 
+  tab_style(style = cell_fill(color = "lightblue"),
+            locations = cells_body(columns = c("jahr",
+                                               "stadtkreis",
+                                               "einw_sk",
+                                               "anteil_einw_sk"))) %>% 
+  tab_style(style = cell_fill(color = "lightyellow"),
+            locations = cells_body(columns = c("einw_sk_schweiz",
+                                               "anteil_sk_schweiz"))) %>% 
+  tab_style(style = cell_fill(color = "wheat"),
+            locations = cells_body(columns = c("einw_sk_ausland",
+                                               "anteil_sk_ausland",
+                                               "delta_anteil_ausland_yoy")))
 ```
 
-Ausländeranteil der Quartiere von Winterthur der letzten 10 Jahre @tbl-anteile-quartier
+Ausländeranteil der **Quartiere** von Winterthur der letzten 10 Jahre (@tbl-anteile-quartier) inkl. der Veränderung deren Ausländerquote in Prozentpunkten.
 
 ```{r}
 #| label: tbl-anteile-quartier
-#| tbl-cap: "Ausländeranteil der Quartiere von Winterthur der letzten 10 Jahre"
+#| tbl-cap: "Aktueller Ausländeranteil der Quartiere von Winterthur"
+
+jahr_filter <- max(data_staatenkleingruppe$jahr)
+
 
 ## Quartier
 overview_quartier <- data_staatenkleingruppe_reduced %>%
-  group_by(jahr, stadtkreis, quartier) %>% 
-  summarize(einwohner = sum(anzahl, na.rm = TRUE),
-            einwohner_ausland = sum(anzahl[herkunft == "Ausland"], na.rm = TRUE),
-            anteil_ausland = einwohner_ausland / einwohner * 100,
-            einwohner_schweiz = sum(anzahl[herkunft != "Ausland"], na.rm = TRUE),
-            anteil_schweiz = einwohner_schweiz / einwohner  * 100,
+  group_by(jahr, quartier) %>% 
+  summarize(einw_quartier = sum(anzahl, na.rm = TRUE),
+            einw_quartier_ausland = sum(anzahl[herkunft == "Ausland"], na.rm = TRUE),
+            anteil_quartier_ausland = einw_quartier_ausland / einw_quartier * 100,
+            einw_quartier_schweiz = sum(anzahl[herkunft != "Ausland"], na.rm = TRUE),
+            anteil_quartier_schweiz = einw_quartier_schweiz / einw_quartier  * 100,
             ## Alternative für ungroup()
             #.groups = "drop"
-            ) %>%  
+            ) %>%
   ungroup() %>%
-  select(jahr, stadtkreis, quartier,
-         einwohner, einwohner_schweiz, anteil_schweiz, einwohner_ausland, anteil_ausland) 
+  # der Gesamtwert "einwohner" besteht im df "overview_city" und kann anstelle erneuter   berechnung mittels join dazu genommen werden.
+  left_join(overview_city, by = "jahr") %>%
+  mutate(anteil_quartier_ausland_gesamt = (einw_quartier_ausland / einwohner) * 100) %>% 
+  mutate(anteil_einw_quartier = einw_quartier / einwohner * 100) %>%
+  
+  #Erneute Gruppierung um die Delta je Jahr UND Quartier zu erhalten, ansonsten würde die Berechnung vom letzen Wert ohne Berücksichtung des Quartiers erfolgen. --> Für 2014 resultiert nun logischerweise ein NA Wert da kein Vergleich zum Vorjahr besteht.
+  group_by(quartier) %>% 
+  
+  arrange(quartier, jahr) %>%
+  mutate(delta_anteil_quartier_ausland = anteil_quartier_ausland - lag(anteil_quartier_ausland)) %>% 
 
-gt(overview_quartier)
+  ungroup() %>% 
+  
+  select(jahr,
+         quartier,
+         einw_quartier,
+         anteil_einw_quartier,
+         einw_quartier_schweiz,
+         anteil_quartier_schweiz,
+         einw_quartier_ausland,
+         anteil_quartier_ausland,
+         delta_anteil_quartier_ausland,
+         einwohner,
+         anteil_quartier_ausland_gesamt)
 
-
-
-############################################################################
-# tbd
-# 
-# 
-# #Alter ist nicht in data_statenkleingruppe. Es wird deshalb geprüft ob diese Angabe aus einer anderen Quelle hinzugenommen werden kann.
-# 
-# names(data_geschlecht_heimat)
-# nrow(data_geschlecht_heimat)
-# glimpse(data_geschlecht_heimat)
-# 
-#  
-# 
-# Nationalität (CH/non-CH)
-# 
-# optional: Geschlecht 
-
+overview_quartier %>% 
+  filter(jahr %in% jahr_filter) %>% 
+  gt() %>%
+  fmt_percent(columns = where(is.numeric) & matches("anteil") & !matches("jahr"),
+              decimals = 1,
+              scale_values = FALSE) %>% 
+  fmt_number(columns = delta_anteil_quartier_ausland,
+             decimals = 3,
+             use_seps = TRUE,
+             sep_mark = "'",
+             force_sign = TRUE) %>%
+  fmt_number(columns = where(is.numeric) & !matches("anteil") & !matches("jahr"),
+             decimals = 0,
+             use_seps = TRUE,
+             sep_mark = "'") %>%
+  tab_style(style = cell_fill(color = "lightblue"),
+            locations = cells_body(columns = c("jahr",
+                                               "quartier",
+                                               "delta_anteil_quartier_ausland",
+                                               "anteil_quartier_ausland_gesamt"))) 
 
 ```
 
-# Daten Visualisierung
+# Visualisierung
 
-```{r}
-#| eval: TRUE
+### Veränderung des Ausländeranteils der letzten 10 Jahren der
 
-
-# Die Visualisierung auf Ebene Stadtkreis zeigt einen Ausreisser namens "unbekannt". Es handelt sich um 3 Positionen aus den Jahren 2014, 2015 und 2016 welche knapp 50 Einwohne betreffen. Es handelt sich um eine vernachlässigbare Grössenordnung und wird in dieser Betrachtung deshalb ausgeschlossen.
-
-overview_stadtkreis_unbekannt <- overview_stadtkreis %>% 
-  filter(stadtkreis == "unbekannt")
-
-gt(overview_stadtkreis_unbekannt)
-
-overview_stadtkreis_cleaned <- overview_stadtkreis %>% 
-  filter(stadtkreis != "unbekannt")
-
-gt(overview_stadtkreis_cleaned)
-
-```
-
-Stadt Winterthur und die Entwicklung des Ausländeranteils @fig-anteil-stadt
+#### Stadt Winterthur (@fig-anteil-stadt)
 
 ```{r}
 #| label: fig-anteil-stadt
@@ -413,96 +695,92 @@ ggplot(data = overview_city,
                      y = anteil_ausland)) +
   geom_col(position = "stack") +
   
+  
+  geom_line(data = overview_stadtkreis,
+            aes(x = factor(jahr),
+                y = anteil_sk_ausland,
+                group = stadtkreis,
+                color = stadtkreis),
+            size = 1) +
+  
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45,
                                    hjust = 1)) +
+  scale_color_viridis_d() +
   labs(x = "Jahr",
-       y = NULL,
-       title = "Entwicklung Ausländeranteil",
-       subtitle = "Gruppiert nach Jahr") +
-  scale_y_continuous(labels = scales::percent_format(scale = 1))  
-
+       y = "Ausländeranteil (%)",
+       title = "Entwicklung Ausländeranteil Stadt Winterthur und deren Stadtkreise",
+       subtitle = "Balken: Gesamtstadt, Linien: Stadtkreise",
+       color = "Stadtkreis") +
+  scale_fill_viridis_d() +
+  scale_y_continuous(labels = scales::percent_format(scale = 1))
 ```
 
-Stadtkreise Winterthurs und deren Entwicklung des Ausländeranteils @fig-anteil-stadtkreise (stacked)
+#### Winterthur nach Stadtkreisen (@fig-anteil-stadtkreis)
 
 ```{r}
 #| label: fig-anteil-stadtkreis
-#| fig-cap: "Entwicklung des prozentualen Ausländeranteils innerhalb der Stadtkreise von Winterthur"
-#| warning: false
-
-
-ggplot(data = overview_stadtkreis_cleaned,
-       mapping = aes(x = jahr,
-                     y = einwohner,
-                     fill = stadtkreis)) +
-  geom_col(position = "stack") +
-  geom_col(mapping = aes(x = jahr,
-                         y = einwohner / 1000),
-            fill = "lightblue",
-            alpha = 0.5,
-            position = "identity") +
-  scale_y_continuous(name = "Ausländeranteil",
-                     sec.axis = sec_axis(~ . * 1, name = "Gesamteinwohner")
-  ) +
-  labs(x = "Jahr", fill = "Stadtkreis") +
-  theme_classic()
-   
-
-```
-
-Stadtkreise Winterthurs und deren Entwicklung des Ausländeranteils @fig-anteil-stadtkreise (Ein Diagramm pro Stadtkreis)
-
-```{r}
-#| label: fig-anteil-quartier
-#| fig-cap: "Entwicklung des prozentualen Ausländeranteils innerhalb der Quartiere von Winterthur"
+#| fig-cap: "Entwicklung des prozentualen Ausländeranteils innerhalb der Quartiere von Winterthur - Stadtkreisansicht"
 #| warning: false
 
 #Entwicklung Ausländeranteil nach Stadtkreis
-ggplot(data = overview_stadtkreis_cleaned, 
+ggplot(data = overview_stadtkreis, 
        mapping = aes(x = factor(jahr),
-                     y = anteil_sk_ausland)) +
+                     y = anteil_sk_ausland,
+                     fill = stadtkreis)) +
   geom_col(position = "stack") +
-  
+  scale_fill_viridis_d() +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45,
                                    hjust = 1)) +
   labs(x = "Jahr",
-       y = NULL,
+       y = "Ausländeranteil (%)",
+       title = "Entwicklung Ausländeranteil",
+       subtitle = "Gruppiert nach Stadtkreis") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  facet_wrap(~ stadtkreis) +
+  labs(fill = "Stadtkreis")
+
+```
+
+#### Stadtkreise Winterthur nach Jahr (@fig-anteil-stadtkreis-jahr) 
+
+```{r}
+#| label: fig-anteil-stadtkreis-jahr
+#| fig-cap: "Entwicklung des prozentualen Ausländeranteils innerhalb der Quartiere von Winterthur - Stadtkreisansicht"
+#| warning: false
+
+#Entwicklung Ausländeranteil nach Stadtkreis
+ggplot(data = overview_stadtkreis, 
+       mapping = aes(x = stadtkreis,
+                     y = anteil_sk_ausland,
+                     fill = factor(stadtkreis))) +
+  geom_col(position = "dodge") +
+  scale_fill_viridis_d() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45,
+                                   hjust = 1)) +
+  labs(x = "Stadtkreis",
+       y = "Ausländeranteil (%)",
        title = "Entwicklung Ausländeranteil",
        subtitle = "Gruppiert nach Jahr") +
   scale_y_continuous(labels = scales::percent_format(scale = 1)) +
-  #Ein Graph pro Stadtkreis
-  facet_wrap(~ stadtkreis) +
-  labs(x = "Jahr", y = "Ausländeranteil (%)", color = "Stadtkreis") 
+  facet_wrap(~ factor(jahr)) +
+  labs(fill = "Stadtkreis")  
 
 
 ```
 
-WIP
+# Schlussfolgerung
 
-```{r}
+-   In vier Gebieten liegt der Ausländeranteil über dem Durchschnitt der Stadt. \
+    @fig-anteil-stadt
 
-# Liniendiagramm mit Facetten
-ggplot(data = overview_stadtkreis_cleaned,
-       mapping = aes(x = jahr, 
-                     y = einwohner_ausland, 
-                     color = stadtkreis)) +
- 
-  
-  geom_col(data = overview_stadtkreis_cleaned,
-           mapping = aes(x = jahr,
-                         y = einwohner),
-           fill = "lightblue",
-           alpha = 0.5,
-           position = "identity") +
-  scale_y_continuous(
-    name = "Ausländeranteil (%)",
-    sec.axis = sec_axis(~ . * 1, name = "Gesamteinwohner (Tausend)")
-  ) +
-  labs(x = "jahr") +
-  theme_classic()
-  
+-   Diese vier Gebiete sind Töss mit dem klar höchsten Wert, gefolgt von den Stadtkreisen Mattenbach, Oberwinterthur und Wülflingen.\
+    @fig-anteil-stadtkreis-jahr
 
+-   Über die letzten Jahre ist in allen Quartieren eine Zunahme zu verzeichnen.\
+    @fig-anteil-stadtkreis
 
-```
+-   Die Zunahme bewegt sich im einstelligen Prozentbereich.\
+    @tbl-anteile
