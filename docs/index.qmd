@@ -95,7 +95,7 @@ Im Rahmen der Analyse werden die Daten aufbereitet und in ein Tidy Data Format g
 -   **Teil 1\
     **Erkenntnisse zur Veränderung des Ausländeranteils der letzten 10 Jahren der **Stadt Winterthur** sowie der letzten 3 Jahre der **Stadtkreise Winterthurs** schaffen.
 
--   **Teil 2\
+-   **Teil 2 - TO BE DONE\
     **Ausländeranteil vergleichen mit **i) kantonalen Zahlen** und **ii) geografische Heatmap** erstellen.
 
     Benötigte Daten: Jahr, Ausländeranteil, Gebiet (inkl. Koordinaten)

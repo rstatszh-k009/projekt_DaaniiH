@@ -1,1 +1,6 @@
-﻿variable_name;beschreibung
+﻿variable_name;beschreibung;Beispiel
+jahr;Jahreszahl;2014
+herkunft;"Neu generierter ""bolenscher"" Wert der die diversen Staatenkleingruppe schlicht in Ausland/Schweiz unterteilt";Ausland
+stadtkreis;Die verschiedenen Stadtkreise;Mattenbach
+quartier;Die verschiedenen Quartiere;Deutweg
+anzahl;Die Anzahl Einwohner;1368
