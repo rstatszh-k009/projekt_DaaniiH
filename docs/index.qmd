@@ -31,7 +31,12 @@ library(viridis)
 library(knitr)     # Package wird für Funktion kable() geladen
 library(DT)        # Package wird für Funktion datatable() geladen
 library(gt)        # Package wird für Funktion gt() geladen
-library(kableExtra) # Package wird für detailiertere kable() bzw. kbl() Tabellen benötigt.
+library(kableExtra) # Package wird für detailiertere kable() bzw. kbl() Tabellen benötigt
+library(sf)
+library(leaflet)
+library(leaflet.minicharts)
+library(osmdata)
+
 ```
 
 # Einleitung
@@ -42,7 +47,7 @@ Es erfolgt hierzu eine Auseinandersetzung mit den Daten zur Bevölkerung in Wint
 
 # Daten laden
 
-Import der Rohdaten der Stadt Winterthur
+Import der Rohdaten der **Stadt Winterthur**
 
 ```{r}
 
@@ -51,7 +56,7 @@ data_staatenkleingruppe_bfs <-  read_csv(here::here("data/raw/Quartiere_Jahr_KTZ
                                      show_col_types = FALSE)
 ```
 
-Import der Rohdaten des Kanton Zürichs
+Import der Rohdaten des **Kanton Zürichs**
 
 ```{r}
 #| label: fig-raw-kanton
@@ -67,9 +72,8 @@ tbd geo coordinates
 
 ```{r}
 
-# tbd
-# data_geo_coordinates_ktzh <- read_csv
-
+geojson_data_swisstopo <- read_delim(here::here("data/raw/AMTOVZ_CSV_WGS84.csv"),
+                                     show_col_types = FALSE)
 ```
 
 # Daten
@@ -743,7 +747,7 @@ ggplot(data = overview_stadtkreis,
 
 ```
 
-#### Stadtkreise Winterthur nach Jahr (@fig-anteil-stadtkreis-jahr) 
+#### Stadtkreise Winterthur nach Jahr (@fig-anteil-stadtkreis-jahr)
 
 ```{r}
 #| label: fig-anteil-stadtkreis-jahr
@@ -773,7 +777,7 @@ ggplot(data = overview_stadtkreis,
 
 # Schlussfolgerung
 
--   In vier Gebieten liegt der Ausländeranteil über dem Durchschnitt der Stadt. \
+-   In vier Gebieten liegt der Ausländeranteil über dem Durchschnitt der Stadt.\
     @fig-anteil-stadt
 
 -   Diese vier Gebiete sind Töss mit dem klar höchsten Wert, gefolgt von den Stadtkreisen Mattenbach, Oberwinterthur und Wülflingen.\
@@ -784,3 +788,175 @@ ggplot(data = overview_stadtkreis,
 
 -   Die Zunahme bewegt sich im einstelligen Prozentbereich.\
     @tbl-anteile
+
+# Teil 2
+
+## Daten Aufbereitung
+
+### Datenbetrachtung
+
+#### Ausländeranteil Kanton
+
+```{r}
+
+#Ausländeranteil Kanton
+glimpse(data_auslaenderanteil_kantonal)
+
+unique(data_auslaenderanteil_kantonal$BFS_NR)
+unique(data_auslaenderanteil_kantonal$THEMA_NAME)
+unique(data_auslaenderanteil_kantonal$INDIKATOR_ID)
+
+#gt(data_auslaenderanteil_kantonal)
+
+datatable(data_auslaenderanteil_kantonal,
+          filter = 'top',
+          options = list(pageLength = 10,
+          search = list(regex = TRUE,
+                        caseInsensitive = TRUE)))
+
+
+```
+
+#### GeoJSON Daten
+
+```{r}
+
+glimpse(geojson_data_swisstopo)
+#gt(geojson_data)
+datatable(geojson_data_swisstopo,
+          filter = 'top',
+          options = list(pageLength = 10,
+          search = list(regex = TRUE,
+                        caseInsensitive = TRUE)))
+```
+
+### Daten transformieren, zusammenführen und reduzieren
+
+Datensatz mit Ausländeranteil reduzieren auf notwendige Kolonnen
+
+```{r}
+data_auslaenderanteil_kantonal_reduced <- data_auslaenderanteil_kantonal %>%
+  select(bfs = BFS_NR,
+         ort = GEBIET_NAME,
+         jahr = INDIKATOR_JAHR,
+         anteil_ausland = INDIKATOR_VALUE) %>% 
+  mutate(anteil_schweiz =  100-anteil_ausland)
+
+
+```
+
+Ortsnamen anpassen und Koordinaten zu Kantonalen Daten hinzufügen
+
+```{r}
+ortsmapping <- read_delim(here::here("data/raw/ortsmapping.csv"),
+                             delim = ";",
+                             show_col_types = FALSE) 
+
+data_kanton_reduced_geo <- left_join(data_auslaenderanteil_kantonal_reduced,
+                                     ortsmapping,
+                                     by = c("ort" =  "ort_kanton"))
+ 
+#Geo-Daten (lng/lat) zu den Statisikdaten hinzufügen.
+data_kanton_reduced_geo_coord <- left_join(data_kanton_reduced_geo,
+                                           geojson_data_swisstopo,
+                                           by = c("ort_geojson_4_mapping" = "Ortschaftsname"))
+
+
+data_kanton_final_all_year <- data_kanton_reduced_geo_coord %>% 
+  select(bfs, ort, jahr, anteil_ausland, anteil_schweiz, lng = E, lat = N)
+
+    #NA prüfen/herausfiltern
+    na_rows <- data_kanton_final_all_year[!complete.cases(data_kanton_final_all_year), ]
+    print(na_rows)
+    
+    data_kanton_final_all_year_clean <- na.omit(data_kanton_final_all_year)
+    
+    na_rows <- data_kanton_final_all_year_clean[!complete.cases(data_kanton_final_all_year_clean), ]
+    print(na_rows)
+
+
+
+glimpse(data_kanton_final_all_year_clean)
+```
+
+```{r}
+
+# Berechnung von Durchschnitt und Median pro Jahr
+jahres_statistik <- data_kanton_final_all_year_clean %>%
+  group_by(jahr) %>%
+  summarise(durchschnitt = mean(anteil_ausland, na.rm = TRUE),
+            median = median(anteil_ausland, na.rm = TRUE))
+
+# Plots
+ggplot(jahres_statistik, aes(x = jahr)) +
+  geom_line(aes(y = durchschnitt, color = "Durchschnitt")) +
+  geom_line(aes(y = median, color = "Median")) +
+  scale_color_manual(values = c("Durchschnitt" = "blue", "Median" = "red")) +
+  labs(title = "Durchschnitt und Median des Ausländeranteils pro Jahr",
+       x = "Jahr",
+       y = "Anteil Ausländer (%)",
+       color = "Statistik") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+```{r}
+
+# OpenStreetMap Kartenausschnitt definieren und Diagramme oder Werte zu ausgewählten geografischen Punkten auf Leaflet-Karte abbilden
+
+# Karte definieren; i.e. Mittelpunktkoordinaten und Zoom festlegen
+map <- leaflet() %>% 
+  addTiles() %>% 
+  setView(lng = 8.655083,
+          lat = 47.412724,
+          #lng = 8.1355,
+          #lat = 46.4754,
+          zoom = 10)
+
+input_alle_2023 <- data_kanton_final_all_year_clean %>% 
+  filter(jahr == 2023)
+
+#Charts/Diagramme zu Koordinaten setzen
+map %>%  addMinicharts(lng = input_alle_2023$lng,
+                       lat = input_alle_2023$lat,
+                       type = "bar",
+                       chartdata = data.frame(Ausland = input_alle_2023$anteil_ausland,
+                                              Schweiz = input_alle_2023$anteil_schweiz),
+                       width = 25, 
+                       colorPalette = viridis(3),
+                       labelMinSize = 8,
+                       labelMaxSize = 12)
+
+input_top20_2023 <- data_kanton_final_all_year_clean %>% 
+  group_by(jahr) %>%
+  top_n(20, anteil_ausland) %>%
+  ungroup() %>%
+  arrange(desc(anteil_ausland)) %>% 
+  filter(jahr == 2023)
+
+table_html <- input_top20_2023 %>%
+  select(ort, jahr, anteil_ausland, anteil_schweiz) %>%
+  arrange(desc(anteil_ausland)) %>%
+  head(20) %>%
+  knitr::kable("html")
+
+
+# Fügen Sie die Tabelle als Control zur Karte hinzu
+
+
+#Charts/Diagramme zu Koordinaten setzen
+map %>%  addMinicharts(lng = input_top20_2023$lng,
+                       lat = input_top20_2023$lat,
+                       type = "bar",
+                       chartdata = data.frame(Ausland = input_top20_2023$anteil_ausland,
+                                              Schweiz = input_top20_2023$anteil_schweiz),
+                       width = 25, 
+                       colorPalette = viridis(3),
+                       labelMinSize = 8,
+                       labelMaxSize = 12) %>% 
+   addControl(
+    html = table_html,
+    position = "bottomright"
+  )
+```
